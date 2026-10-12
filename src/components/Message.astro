@@ -1,0 +1,900 @@
+---
+/**
+ * The message — "Para sa akong langga".  A letter in fourteen small chapters.
+ *
+ * Ported from the "Night editorial (v2)" mockup in message-ref/. The mockup is
+ * a standalone page with its own scroll root, preloader, topbar and cursor;
+ * here it is one section of the story, so those are gone (the site already has
+ * a progress bar, masthead and cursor) and the preloader becomes a curtain that
+ * lifts off the opening spread the first time it is reached.
+ *
+ * Base styles are the finished state. Everything moving is added by
+ * scripts/motion/message.js, and only when MOTION is enabled, so with reduced
+ * motion — or no JavaScript — this is simply the letter, composed and complete.
+ *
+ * ScrollSmoother transforms the page, which disables `position: sticky`. The
+ * sticky side columns, stacking cards and horizontal ride are therefore pinned
+ * by ScrollTrigger in full motion, and fall back to native sticky / overflow
+ * scrolling in reduced motion (when ScrollSmoother is not mounted).
+ *
+ * Split text is built here at render time rather than in the browser, with the
+ * real sentence beside it in .sr-only so assistive tech reads it once.
+ */
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource/instrument-serif/400-italic.css';
+import '@fontsource-variable/newsreader/opsz.css';
+import '@fontsource-variable/newsreader/opsz-italic.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import Picture from './ui/Picture.astro';
+import {
+  MSG_CHAPTERS, INK_TEXT, TYPED_LINE, STEADY, SORRY,
+  MORE_A, MORE_B, THANKS, WAVE,
+} from '../data/message.js';
+
+/** Words → characters, with a running index for staggering. */
+function chars(text: string, start = 0) {
+  let k = start;
+  const ws = text.split(' ');
+  return ws.map((w, wi) => ({
+    sp: wi < ws.length - 1 ? ' ' : '',
+    cs: [...w].map((c) => ({ c, i: k++ })),
+  }));
+}
+
+const hero1 = chars('Hi, my');
+const hero2 = chars('langga.', 5);
+const ink = INK_TEXT.split(' ');
+const typed = chars(TYPED_LINE);
+const buwakan = [...'Buwakan'];
+const wave = [...WAVE];
+const hearts = Array.from({ length: 17 }, (_, i) => i);
+const HEART = 'M12 21s-7.5-4.6-9.6-9.2C.9 8.2 3 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.6.8-1.4 2.3-2.6 4.4-2.6 3.6 0 5.7 3.7 4.2 7.3C19.5 16.4 12 21 12 21z';
+---
+<section class="msg" id="the-letter" aria-labelledby="msg-title" data-tone="dark" data-msg>
+
+  <!-- HERO · the opening spread ------------------------------------------ -->
+  <div class="msg-hero" id="msg-top" data-msg-hero>
+    <!-- The curtain: the mockup's preloader, lifted once on first arrival.
+         Hidden unless motion/message.js shows it. -->
+    <div class="msg-curtain" data-msg-curtain aria-hidden="true">
+      <div class="msg-curtain__row"><span class="msg-mono">Para sa akong langga</span><span class="msg-mono">Usa ka sulat</span></div>
+      <div class="msg-curtain__row msg-curtain__row--end">
+        <span class="msg-disp msg-curtain__n" data-msg-count>0</span>
+        <span class="msg-mono">Hinay-hinay lang og basa</span>
+      </div>
+    </div>
+
+    <div class="msg-wrap msg-hero__top" data-msg-fade>
+      <span class="msg-mono">Para sa akong langga</span>
+      <span class="msg-mono msg-muted">Usa ka sulat · 14 ka kapitulo</span>
+    </div>
+
+    <h2 class="sr-only" id="msg-title">Hi, my langga.</h2>
+    <div class="msg-disp msg-hero__type" aria-hidden="true">
+      <div class="msg-wrap msg-hero__l1">
+        <span>{hero1.map((w) => (<><span class="msg-wd">{w.cs.map((c) => <span class="msg-uch" style={`--i:${c.i}`}>{c.c}</span>)}</span>{w.sp}</>))}</span>
+        <span class="msg-pill" data-msg-pill>
+          <Picture id="moments/pic20" alt="" sizes="20rem" ratio="auto" class="msg-pill__pic" />
+        </span>
+      </div>
+      <div class="msg-hero__l2" data-msg-l2>
+        {hero2.map((w) => <span class="msg-wd">{w.cs.map((c) => <span class="msg-uch" style={`--i:${c.i}`}>{c.c}</span>)}</span>)}
+      </div>
+    </div>
+
+    <div class="msg-wrap msg-hero__foot">
+      <p class="msg-hero__lede" data-msg-fade>A letter in fourteen small chapters. Ang tanan nakong gusto isulti nimo, sa usa ka lugar.</p>
+      <svg class="msg-spin" data-msg-fade data-msg-spin viewBox="0 0 160 160" width="140" height="140" role="img" aria-label="Hinay-hinay lang og basa">
+        <defs><path id="msg-circ" d="M 80,80 m -62,0 a 62,62 0 1,1 124,0 a 62,62 0 1,1 -124,0" /></defs>
+        <text class="msg-spin__text"><textPath href="#msg-circ">Hinay-hinay lang og basa · para sa akong langga · </textPath></text>
+        <path d="M80 96s-12-7.4-15.4-14.7C62.2 75.6 65.6 69.6 71.4 69.6c3.4 0 5.8 1.9 7 4.2 1.3-2.3 3.7-4.2 7.1-4.2 5.8 0 9.1 6 6.7 11.7C89.8 88.6 80 96 80 96z" class="msg-rose-fill" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- INDEX --------------------------------------------------------------- -->
+  <div class="msg-index" data-msg-indexwrap>
+    <div class="msg-wrap">
+      <div class="msg-chh msg-chh--tight"><span class="msg-mono msg-rose">Mga kapitulo</span><span class="msg-mono msg-muted">14</span></div>
+      <nav aria-label="Chapters of the letter" data-msg-index>
+        {MSG_CHAPTERS.map((c) => (
+          <a class="msg-row" href={`#${c.id}`} data-msg-row data-media={c.media ?? ''}>
+            <span class="msg-mono msg-rose" data-msg-rown>{c.n}</span>
+            <span class="msg-row__t">{c.t}</span>
+            <span class="msg-row__ar" aria-hidden="true">&rarr;</span>
+          </a>
+        ))}
+      </nav>
+      {/* Hover previews. Pointer-only decoration; motion/message.js drives it. */}
+      <div class="msg-preview" aria-hidden="true" data-msg-preview>
+        {MSG_CHAPTERS.filter((c) => c.media).map((c) => (
+          <div class="msg-preview__img" data-msg-prev={c.media}>
+            <Picture id={c.media!} alt="" sizes="18rem" ratio="4 / 5" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- 01 · Ink ------------------------------------------------------------ -->
+  <div id="msg-c1" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">01</span><span class="msg-mono msg-rose">Ka-lucky</span></div></aside>
+      <div class="msg-main">
+        <p class="msg-disp msg-ink" data-msg-ink>
+          <span class="sr-only">{INK_TEXT}</span>
+          <span aria-hidden="true">{ink.map((w, i) => <span class="msg-w">{w}{i < ink.length - 1 ? ' ' : ''}</span>)}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 · Ghost to solid + photo pair ------------------------------------ -->
+  <div id="msg-c2" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">02</span><span class="msg-mono msg-rose">Sauna ug karon</span></div></aside>
+      <div class="msg-main msg-gap-80">
+        <div class="msg-disp msg-c2-head">
+          <span class="msg-ghost" data-msg-ghost>Ang mga butang nga ato rang gipangandoy sauna,</span>
+          <span class="msg-rose msg-block" data-msg-rv>nahitabo na diay sa atoang duha.</span>
+        </div>
+        <div class="msg-pair">
+          <figure class="msg-fig" data-msg-clip>
+            <div class="msg-ph"><Picture id="moments/pic12" alt="The two of them at the Toledo City fiesta, the night of their first date." sizes="(max-width: 54rem) 92vw, 30vw" ratio="4 / 5" /></div>
+            <figcaption class="msg-mono msg-muted">Sauna · gipangandoy ra</figcaption>
+          </figure>
+          <figure class="msg-fig msg-fig--drop" data-msg-clip>
+            <div class="msg-ph"><Picture id="moments/pic26" alt="A slow afternoon together at home." sizes="(max-width: 54rem) 92vw, 30vw" ratio="4 / 5" /></div>
+            <figcaption class="msg-mono msg-rose">Karon · nahitabo na</figcaption>
+          </figure>
+        </div>
+        <p class="msg-p" data-msg-rv>Langga, happy kaayo ko sa atong relationship, especially when I look back at how we started and compare it to where we are now. Sauna, naa pa tay mga butang nga gipangandoy lang nato. There were places we wanted to go to, dates we wanted to experience, and memories we wished we could make together. Karon, slowly, we're finally experiencing those things together. And honestly, one of the best feelings in the world is realizing nga ang mga butang nga ato rang gipangandoy sauna, nahitabo na diay sa atoang duha.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 · Line mask + marker --------------------------------------------- -->
+  <div id="msg-c3" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">03</span><span class="msg-mono msg-rose">Kung moanhi ka</span></div></aside>
+      <div class="msg-main">
+        <h3 class="msg-disp msg-c3-head"><span class="msg-lm"><span>I can feel your love</span></span><span class="msg-lm"><span class="msg-it msg-rose">in the way you stay.</span></span></h3>
+        <p class="msg-p" data-msg-rv>I love it when you come here sa among house and mag-overnight ka. I love how we get to spend more time together now compared sauna. Mas dugay na ta mag-uban, mas daghan na ta og moments nga ato ra, and I can really feel nga mas attached na pud ka nako. I can feel your love in the way you stay, in the way you spend your time with me, and in the way you make me feel nga <mark class="msg-sw">you genuinely want to be here with me.</mark></p>
+        <p class="msg-p" data-msg-rv>And langga, I hope you know nga I appreciate all of that so much. <mark class="msg-sw">I feel so loved by you.</mark> Dili lang tungod sa imong words, but because of <mark class="msg-sw">the time and effort you give me.</mark> You make me feel nga I'm someone you genuinely want to be with, and that means so much to me.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 · Typewriter ----------------------------------------------------- -->
+  <div id="msg-c4" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">04</span><span class="msg-mono msg-rose">Sa atong room</span></div></aside>
+      <div class="msg-main">
+        <p class="msg-p" data-msg-rv>Ganahan kaayo ko anang mga moments nga naa ra ta sa atong room, magkatawa sa mga random nga butang, maghamag-hamag, magstorya og bisan unsa, or maglingaw-lingaw lang ta nga kitang duha. Sometimes, we're not even doing anything special, pero happy kaayo ko. Wala tay kinahanglan adtoan, wala tay kinahanglan paliton, and we don't need to do anything grand. Basta naa ka sa akong tapad, okay na kaayo ko. Those are the moments nga makaingon ko sa akong self,</p>
+        <blockquote class="msg-disp msg-tw" data-msg-tw>
+          <span class="sr-only">{TYPED_LINE}</span>
+          <span aria-hidden="true">{typed.map((w) => (<><span class="msg-wd">{w.cs.map((c) => <span class="msg-ch1">{c.c}</span>)}</span>{w.sp}</>))}<span class="msg-caret" data-msg-caret></span></span>
+        </blockquote>
+        <p class="msg-p" data-msg-rv>You're not just my girlfriend, langga. You're also someone nga I can laugh with, be silly with, and just be myself around.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 · Pinned horizontal ride ----------------------------------------- -->
+  <div id="msg-c5" class="msg-c5">
+    <div class="msg-wrap"><div class="msg-chh"><span class="msg-chh__l"><span class="msg-num" aria-hidden="true">05</span><span class="msg-mono msg-rose">Hinay-hinay</span></span><span class="msg-mono msg-muted">Scroll · mag-laag ta</span></div></div>
+    <div class="msg-hview" data-msg-hview>
+      <div class="msg-htrack" data-msg-htrack>
+        <div class="msg-hcard" style="--w:min(560px,80vw)"><span class="msg-mono msg-muted">Sauna</span><p class="msg-disp msg-h-36">Remember those places nga ato rang gipangandoy sauna kay <em class="msg-rose">wala pa tay motor?</em></p></div>
+        <div class="msg-hph" style="--w:min(420px,70vw);--h:min(560px,62vh)" data-msg-hph><Picture id="ice/ice-07" alt="A selfie together in the dark of a cinema, settled into purple seats." sizes="420px" ratio="auto" /></div>
+        <div class="msg-hcard" style="--w:min(520px,80vw)"><span class="msg-mono msg-rose">Karon</span><p class="msg-disp msg-h-44 msg-it">Nakaadto na gyud ta sa uban.</p></div>
+        <div class="msg-hph msg-hph--low" style="--w:min(360px,70vw);--h:min(460px,52vh)" data-msg-hph><Picture id="buwakan/buwakan-19" alt="Standing together on a garden path under arches of leaves and flowers at Buwakan." sizes="360px" ratio="auto" /></div>
+        <div class="msg-hcard" style="--w:min(600px,80vw)"><p class="msg-disp msg-h-32">Kanang mag-date ta sa syudad, maglaag ta nga wala kaayo tay paki kung naay makakita nato.</p></div>
+        <div class="msg-hph" style="--w:min(460px,70vw);--h:min(600px,66vh)" data-msg-hph><Picture id="ice/ice-08" alt="Their feet side by side in rental skates, lacing up at the rink." sizes="460px" ratio="auto" /></div>
+        <div class="msg-hcard msg-hcard--last" style="--w:min(820px,86vw)"><p class="msg-disp msg-h-52 msg-it msg-rose">Hinay-hinay, nahimo na gyud silang memories.</p></div>
+      </div>
+      <div class="msg-wrap msg-hbar" aria-hidden="true">
+        <span class="msg-mono msg-muted">Sauna</span>
+        <span class="msg-hbar__rail"><i data-msg-hbar></i></span>
+        <span class="msg-mono msg-rose">Karon</span>
+      </div>
+    </div>
+    <div class="msg-wrap msg-c5-after">
+      <div class="msg-indent">
+        <p class="msg-p" data-msg-rv>And our dates, langga. Grabe, if I think about them, maka-smile gyud ko. Remember those places nga ato rang gipangandoy sauna kay wala pa tay motor? Karon, nakaadto na gyud ta sa uban. We finally got to explore places together, especially sa city, and I was so happy nga kita ang mag-uban.</p>
+        <p class="msg-p" data-msg-rv>Kanang mag-date ta sa syudad, maglaag ta nga wala kaayo tay paki kung naay makakita nato, kay we're just enjoying our time together. I love those moments because I get to experience life with you. It feels so good nga dili na lang nato imagination ang atong mga plans, kay hinay-hinay, nahimo na gyud silang memories.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 · Glide + trails + ice triptych ---------------------------------- -->
+  <div id="msg-c6" class="msg-ch">
+    <div class="msg-wrap"><div class="msg-chh msg-chh--tight"><span class="msg-chh__l"><span class="msg-num" aria-hidden="true">06</span><span class="msg-mono msg-rose">Ice skating</span></span><span class="msg-mono msg-muted">Usa sa dili malimtan</span></div></div>
+    <h3 class="msg-disp msg-buwakan" data-msg-glide>
+      <span class="sr-only">Buwakan</span>
+      <span aria-hidden="true">{buwakan.map((c) => <span class="msg-gl">{c}</span>)}</span>
+    </h3>
+    <svg class="msg-trails" aria-hidden="true" viewBox="0 0 1200 160" preserveAspectRatio="none" data-msg-trails>
+      <path class="msg-trail" pathLength="1" d="M-10 120 C 180 20, 320 150, 520 84 S 820 6, 920 92 S 1110 150, 1210 36" fill="none" stroke="var(--m-ice)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+      <path class="msg-trail" pathLength="1" d="M-10 98 C 200 40, 300 160, 540 96 S 800 26, 940 104 S 1100 128, 1210 58" fill="none" stroke="var(--m-rose)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+    </svg>
+    <div class="msg-wrap">
+      <div class="msg-tri" data-msg-clip>
+        <div class="msg-ph"><Picture id="buwakan/buwakan-19" alt="Standing together on a garden path under arches of leaves and flowers at Buwakan." sizes="(max-width: 54rem) 92vw, 30vw" ratio="3 / 4" /></div>
+        <div class="msg-ph msg-tri__mid"><Picture id="buwakan/buwakan-21" alt="A kiss on the cheek in a selfie, flowers and green mountains behind them." sizes="(max-width: 54rem) 92vw, 30vw" ratio="3 / 4" /></div>
+        <div class="msg-ph"><Picture id="buwakan/buwakan-22" alt="Sitting together on a rock among hydrangeas and pink and white blooms." sizes="(max-width: 54rem) 92vw, 30vw" ratio="3 / 4" /></div>
+      </div>
+      <div class="msg-split">
+        <p class="msg-disp msg-c6-lines"><span class="msg-lm"><span>Not necessarily because</span></span><span class="msg-lm"><span>of the place itself,</span></span><span class="msg-lm"><span class="msg-it msg-ice">but because ikaw</span></span><span class="msg-lm"><span class="msg-it msg-ice">akong kauban.</span></span></p>
+        <div class="msg-col">
+          <p class="msg-p" data-msg-rv>And langga, our date sa Buwakan sa Ice Skating! Grabe, nindot kaayo to nga experience. One of those dates nga dili gyud dali malimtan. Happy kaayo ko ato, and if I could go back to that moment, I would. Not necessarily because of the place itself, but because ikaw akong kauban.</p>
+          <p class="msg-p" data-msg-rv>The place was beautiful, but having you there made the experience even more special. I love that we now have memories nga pwede nato balikan and storyahan in the future. Mga moments nga puhon, makatawa na lang ta while remembering how happy we were. And I hope daghan pa kaayo tag ing-ana nga experiences together.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 · Steady + focus ------------------------------------------------- -->
+  <div id="msg-c7" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">07</span><span class="msg-mono msg-rose">Bisan pa sa away</span></div></aside>
+      <div class="msg-main msg-gap-72">
+        <div class="msg-c7-row">
+          <div class="msg-steady" data-msg-steady>
+            {STEADY.map((s) => <span class="msg-disp msg-st">{s}</span>)}
+          </div>
+          <p class="msg-disp msg-focus msg-c7-focus" data-msg-focus>But when I think about everything we've shared, I know nga <span class="msg-rose">worth it kaayo nga paningkamotan nato ni.</span></p>
+        </div>
+        <p class="msg-p" data-msg-rv>Mao bitaw, langga, despite sa atong mga away, dili nako kalimtan ang tanan natong happy moments. Dili nako gusto nga tungod lang sa mga times nga dili ta magkasinabot, makalimtan nato kung unsa ka nindot ang atong relationship and how much love we have for each other. I know nga dili permi happy ang tanan. Naa gyud tay times nga maglalis, masuko, maghilom, and maghilak. But when I think about everything we've shared, I know nga worth it kaayo nga paningkamotan nato ni.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 · Fill + stacking cards ------------------------------------------ -->
+  <div id="msg-c8" class="msg-ch msg-c8" data-msg-aperture>
+    <div class="msg-wrap">
+      <div class="msg-chh"><span class="msg-chh__l"><span class="msg-num" aria-hidden="true">08</span><span class="msg-mono msg-rose">Pasayloa ko</span></span><span class="msg-mono msg-muted">Tulo ka pasaylo</span></div>
+      <h3 class="msg-disp msg-fillx" data-msg-fillx>Sorry, langga.</h3>
+      <div class="msg-stacks" data-msg-stacks>
+        {SORRY.map((s, i) => (
+          <article class="msg-stack" style={`--top:${110 + i * 30}px`} data-msg-stack>
+            <span class="msg-mono msg-rose">{s.tag}</span>
+            <p class="msg-p msg-p--lg">{s.body}</p>
+          </article>
+        ))}
+      </div>
+      <p class="msg-disp msg-c8-close" data-msg-rv>You deserve to be <mark class="msg-sw">heard,</mark> <mark class="msg-sw">understood,</mark> and <mark class="msg-sw">comforted,</mark> <em class="msg-muted">even when we're not okay with each other.</em></p>
+    </div>
+  </div>
+
+  <!-- 09 · Focus ---------------------------------------------------------- -->
+  <div id="msg-c9" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">09</span><span class="msg-mono msg-rose">Sa lisod pud</span></div></aside>
+      <div class="msg-main msg-gap-72">
+        <p class="msg-disp msg-focus msg-c9-head" data-msg-focus>I don't just want to have you during our happy moments. <em class="msg-rose">I also want to be there for you during the difficult ones.</em></p>
+        <p class="msg-p" data-msg-rv>Kay langga, I don't just want to have you during our happy moments. I also want to be there for you during the difficult ones. I want to learn how to love you better, especially when things get complicated between us. Dili lang kay kabalo ko magpakatawa nimo or mag-date ta sa mga nindot nga lugar, but also because I want you to feel nga you can count on me when you're hurting. I know nga actions matter more than promises, and I want to show you that I'm willing to work on myself for us.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 · Line mask ------------------------------------------------------ -->
+  <div id="msg-c10" class="msg-ch">
+    <div class="msg-wrap msg-grid" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">10</span><span class="msg-mono msg-rose">Namatikdan nako</span></div></aside>
+      <div class="msg-main msg-gap-64">
+        <p class="msg-disp msg-c10-head"><span class="msg-lm"><span>I feel it,</span></span><span class="msg-lm"><span class="msg-rose">langga.</span></span></p>
+        <p class="msg-p" data-msg-rv>And please know nga I notice the love you give me. I notice how much time you spend with me now, how you come here, how we get to be together longer, and how close we've become. I feel it, langga. I feel nga love kaayo ko nimo, and I hope I make you feel loved, too.</p>
+        <p class="msg-p" data-msg-rv>I hope you never feel nga I take your presence for granted because I really don't. Having you here, being able to hug you, laugh with you, and spend time with you is something I genuinely treasure.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11 · Marquee -------------------------------------------------------- -->
+  <div id="msg-c11" class="msg-ch">
+    <div class="msg-wrap msg-grid msg-mb-110" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">11</span><span class="msg-mono msg-rose">Daghan pa</span></div></aside>
+      <div class="msg-main">
+        <p class="msg-p" data-msg-rv>If there's one thing I wish for us, it's that we never lose the happiness we find in the simplest things. I hope even when we're older, we'll still enjoy spending time together, laughing at random things, going on dates, discovering new places, and remembering all the little adventures we had when we were younger. I hope we can keep making memories and looking back at how far we've come, from the days nga mag-imagine ra ta sa mga places nga atoang adtoan, to the days nga naa na gyud ta didto together.</p>
+      </div>
+    </div>
+    <div class="msg-band" aria-hidden="true" data-msg-skew>
+      <div class="msg-band__row"><div class="msg-mq" data-msg-mq>
+        {[...MORE_A, ...MORE_A].map((m) => (
+          <span class="msg-disp msg-mq__item msg-it">{m}<svg viewBox="0 0 24 24" width="30" height="30" class="msg-rose-fill"><path d={HEART} /></svg></span>
+        ))}
+      </div></div>
+      <div class="msg-band__row"><div class="msg-mq" data-msg-mq data-rev>
+        {[...MORE_B, ...MORE_B].map((m) => (
+          <span class="msg-disp msg-mq__item msg-outline">{m}<svg viewBox="0 0 24 24" width="30" height="30" class="msg-ink-stroke"><path d={HEART} /></svg></span>
+        ))}
+      </div></div>
+    </div>
+    <div class="msg-wrap">
+      <div class="msg-indent">
+        <p class="msg-p" data-msg-rv>I want more dates with you, langga. More city dates, more random laag, more overnight stays, more laughter sa atong room, more pictures, more stories, and more memories nga kita ra ang nakahibalo sa meaning. I want to experience more of life with you, not because I need everything to be perfect, but because life feels more beautiful when I get to share it with you.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 · Cascade -------------------------------------------------------- -->
+  <div id="msg-c12" class="msg-ch">
+    <div class="msg-wrap">
+      <div class="msg-chh"><span class="msg-chh__l"><span class="msg-num" aria-hidden="true">12</span><span class="msg-mono msg-rose">Salamat</span></span><span class="msg-mono msg-muted">Daghang salamat</span></div>
+      <div class="msg-cascade" data-msg-cascade>
+        {THANKS.map((t) => (
+          <p class="msg-disp msg-cas" style={`padding-left:${t.pad}`}><em class="msg-rose">{t.a}</em> {t.b}</p>
+        ))}
+      </div>
+      <div class="msg-indent">
+        <p class="msg-p" data-msg-rv>Thank you for being part of my life, langga. Thank you for the love you give me, for the time you spend with me, and for all the memories we've already made. Thank you for making me feel loved in ways nga usahay dili nako ma-explain. I'm happy nga ikaw akong kauban sa mga moments nga sauna gipangandoy ra nato. And I'm excited for all the things we haven't experienced yet.</p>
+        <p class="msg-p" data-msg-rv>I know we still have a lot to learn about each other. Naa pa tay mga weaknesses, misunderstandings, and things we need to improve. But I hope we keep choosing to understand each other rather than letting our problems push us away. I don't expect us to be perfect, langga. I just want us to keep growing, keep trying, and keep loving each other in ways that make us both feel safe and happy.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13 · Collapse on a colour flip -------------------------------------- -->
+  <div id="msg-c13" class="msg-ch msg-c13" data-msg-aperture>
+    <div class="msg-wrap">
+      <div class="msg-chh msg-chh--on-rose"><span class="msg-chh__l"><span class="msg-num msg-num--on-rose" aria-hidden="true">13</span><span class="msg-mono">Ikaw gihapon</span></span><span class="msg-mono">I would still choose you</span></div>
+      <p class="msg-c13-lede" data-msg-rv>I love you so much, akong langga. If I could choose someone to make all these memories with, someone to laugh with over the most random things, someone to go on dates with, and someone to share both my happy and difficult days with, I would still choose you.</p>
+      <div class="msg-c13-stage">
+        <svg class="msg-c13-heart" viewBox="0 0 24 24" aria-hidden="true" data-msg-bigheart><path d={HEART} /></svg>
+        <h3 class="msg-disp msg-col msg-c13-head" data-msg-col>Ikaw gihapon.</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14 · Wave + heartbeat + sign-off ------------------------------------ -->
+  <div id="msg-c14" class="msg-ch msg-c14">
+    <div class="msg-wrap msg-grid msg-mb-140" data-msg-grid>
+      <aside class="msg-side"><div class="msg-stick" data-msg-stick><span class="msg-num" aria-hidden="true">14</span><span class="msg-mono msg-rose">Ha, langga?</span></div></aside>
+      <div class="msg-main">
+        <p class="msg-p" data-msg-rv>I hope nga puhon, daghan pa kaayo tag ma-experience together. More places to visit, more dreams to achieve, more moments nga ato rang duha, and more reasons to be thankful nga nagkaila ta. And when we look back at everything someday, I hope we can smile and say nga despite all the challenges, we never stopped trying to make our love work.</p>
+        <p class="msg-p" data-msg-rv>I'm sorry for the times nga nasakitan tika, langga. I love you for all that you are, and I appreciate everything you bring into my life. I don't want to love you only when it's easy. I want to keep learning how to love you even when things are hard.</p>
+      </div>
+    </div>
+    <div class="msg-wrap msg-finale" data-msg-finale>
+      <p class="msg-disp msg-finale__a" data-msg-rv>Ikaw akong langga, akong kauban sa mga memories nga nahimo na, ug akong kauban sa mga dreams nga gusto pa nato maabot.</p>
+      <p class="msg-disp msg-wave">
+        <span class="sr-only">{WAVE}</span>
+        <span aria-hidden="true">{wave.map((c) => <span class="msg-wv">{c === ' ' ? ' ' : c}</span>)}</span>
+      </p>
+      <div class="msg-hearts" aria-hidden="true">
+        {hearts.map(() => <svg class="msg-heart msg-rose-fill" viewBox="0 0 24 24" width="30" height="30"><path d={HEART} /></svg>)}
+      </div>
+      <p class="msg-disp msg-finale__b" data-msg-rv>and I'm really, really happy nga ikaw.</p>
+      <p class="msg-disp msg-col msg-finale__c" data-msg-col>Always remember that, ha?</p>
+      <a class="msg-mono msg-again" href="#the-letter" data-magnetic>Basaha usab gikan sa sinugdanan</a>
+    </div>
+    <div class="msg-foot" aria-hidden="true">
+      <p class="msg-disp msg-foot__word" data-msg-foot>{[...'langga.'].map((c) => <span class="msg-fch">{c}</span>)}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* --- palette: "night", from the mockup --------------------------------- */
+  .msg {
+    --m-bg: #100C10;
+    --m-bg2: #08060A;
+    --m-card: #17111A;
+    --m-ink: #F4EAE5;
+    --m-muted: #B7A6A4;
+    --m-line: rgba(244, 234, 229, .15);
+    --m-rose: #EE8A86;
+    --m-rose-soft: rgba(238, 138, 134, .32);
+    --m-ice: #8CC4F0;
+    --m-on-rose: #1A0F12;
+    --m-disp: 'Instrument Serif', 'Times New Roman', serif;
+    --m-text: 'Newsreader Variable', Georgia, serif;
+    --m-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+    position: relative;
+    background: var(--m-bg);
+    color: var(--m-ink);
+    font-family: var(--m-text);
+    overflow-x: clip;
+  }
+  .msg ::selection { background: var(--m-rose); color: var(--m-on-rose); }
+
+  /* Film grain, as in the mockup, laid over the whole letter. */
+  .msg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: .08;
+    background-position: var(--gx, 0) var(--gy, 0);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .msg a { color: inherit; text-decoration: none; }
+  .msg a:hover { color: var(--m-rose); }
+
+  /* --- primitives ---------------------------------------------------------- */
+  .msg-disp {
+    font-family: var(--m-disp);
+    font-weight: 400;
+    font-variation-settings: normal;
+    line-height: .98;
+    letter-spacing: -.015em;
+    margin: 0;
+  }
+  .msg-mono {
+    font-family: var(--m-mono);
+    font-size: 12px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .msg-wrap {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4.5vw, 64px);
+  }
+  .msg-ch { padding: 160px 0; position: relative; overflow: clip; }
+  .msg-p { font-size: 20px; line-height: 1.72; margin: 0; text-wrap: pretty; max-width: 620px; }
+  .msg-p--lg { font-size: 22px; }
+  .msg-wd { display: inline-block; white-space: nowrap; }
+  .msg-block { display: block; }
+  .msg-it { font-style: italic; }
+  .msg-rose { color: var(--m-rose); }
+  .msg-ice { color: var(--m-ice); }
+  .msg-muted { color: var(--m-muted); }
+  .msg em { font-style: italic; }
+  .msg-rose-fill { fill: var(--m-rose); }
+  .msg-ink-stroke { fill: none; stroke: var(--m-ink); stroke-width: 1.4; }
+  .msg-gap-80 { gap: 80px !important; }
+  .msg-gap-72 { gap: 72px !important; }
+  .msg-gap-64 { gap: 64px !important; }
+  .msg-mb-110 { margin-bottom: 110px; }
+  .msg-mb-140 { margin-bottom: 140px; }
+  .msg-indent { display: flex; flex-direction: column; gap: 26px; margin-left: clamp(0px, 25vw, 352px); }
+
+  /* chapter grid with a pinned side column */
+  .msg-grid { display: flex; flex-wrap: wrap; gap: 48px 72px; }
+  .msg-side { flex: 1 1 220px; max-width: 280px; }
+  .msg-stick {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 22px;
+  }
+  /* Hairline rules are drawn rather than bordered, so they can be drawn in. */
+  .msg-stick::before,
+  .msg-chh::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--rule-c, var(--m-line));
+    transform: scaleX(var(--rx, 1));
+    transform-origin: 0 50%;
+  }
+  .msg-num {
+    font-family: var(--m-disp);
+    font-size: 132px;
+    line-height: .78;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--m-muted);
+    letter-spacing: -.04em;
+    display: inline-block;
+  }
+  .msg-main { flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 26px; }
+  .msg-chh {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 22px;
+    position: relative;
+    margin-bottom: 64px;
+  }
+  .msg-chh--tight { margin-bottom: 24px; }
+  .msg-chh__l { display: flex; align-items: flex-end; gap: 20px; }
+
+  /* photographs */
+  .msg-ph {
+    position: relative;
+    overflow: clip;
+    border: 1px solid var(--m-line);
+    background: var(--m-card);
+  }
+  .msg-ph :global(.pic) { background-color: var(--m-card); }
+
+  /* --- hero ---------------------------------------------------------------- */
+  .msg-hero {
+    position: relative;
+    min-height: max(100svh, 760px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 140px 0 56px;
+    overflow: clip;
+  }
+  .msg-hero__top {
+    position: absolute;
+    top: 112px; left: 0; right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .msg-hero__type { line-height: .82; }
+  .msg-hero__l1 {
+    display: flex;
+    align-items: center;
+    gap: 2vw;
+    font-size: clamp(76px, 15vw, 240px);
+    padding-right: 0;
+  }
+  .msg-hero__l2 {
+    display: block;
+    white-space: nowrap;
+    font-size: clamp(120px, 27vw, 430px);
+    font-style: italic;
+    color: var(--m-rose);
+    margin-left: -1vw;
+    letter-spacing: -.035em;
+  }
+  .msg-uch { display: inline-block; }
+  .msg-pill {
+    display: block;
+    flex: none;
+    width: 1.5em;
+    height: .62em;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--m-line);
+  }
+  .msg-pill :global(.msg-pill__pic) { width: 100%; height: 100%; aspect-ratio: auto; }
+  .msg-hero__foot {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    margin-top: 40px;
+  }
+  .msg-hero__lede { margin: 0; font-size: 22px; line-height: 1.5; color: var(--m-muted); max-width: 460px; font-style: italic; }
+  .msg-spin__text {
+    font-family: var(--m-mono);
+    font-size: 10.5px;
+    letter-spacing: 3.2px;
+    fill: var(--m-ink);
+    text-transform: uppercase;
+  }
+
+  .msg-curtain {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;          /* motion/message.js turns it on */
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 112px clamp(20px, 4.5vw, 64px) 32px;
+    background: var(--m-rose);
+    color: var(--m-on-rose);
+  }
+  .msg-curtain__row { display: flex; justify-content: space-between; gap: 16px; }
+  .msg-curtain__row--end { align-items: flex-end; }
+  .msg-curtain__n {
+    font-size: clamp(120px, 22vw, 340px);
+    line-height: .8;
+    font-style: italic;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- index --------------------------------------------------------------- */
+  .msg-index { padding: 120px 0 160px; }
+  .msg-row {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 20px;
+    padding: 18px 0;
+    min-height: 44px;
+    border-bottom: 1px solid var(--m-line);
+    position: relative;
+    transition: color .4s;
+  }
+  .msg-row::before {
+    content: '';
+    position: absolute;
+    inset: 0 -12px;
+    z-index: -1;
+    background: linear-gradient(90deg, var(--m-rose-soft), transparent 70%);
+    transform: scaleX(var(--fill, 0));
+    transform-origin: 0 50%;
+    opacity: .5;
+  }
+  [data-msg-index] { position: relative; isolation: isolate; }
+  .msg-index .msg-wrap { position: relative; }
+  .msg-preview {
+    position: absolute;
+    top: 0; left: 0;
+    width: clamp(180px, 18vw, 280px);
+    aspect-ratio: 4 / 5;
+    pointer-events: none;
+    z-index: 3;
+    visibility: hidden;
+  }
+  .msg-preview__img {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
+    clip-path: inset(50% 50% 50% 50%);
+  }
+  .msg-row__t { font-family: var(--m-disp); font-size: clamp(30px, 4vw, 58px); line-height: 1; }
+  .msg-row__ar { font-family: var(--m-mono); font-size: 20px; opacity: 0; transform: translateX(-12px); }
+  .msg-row:hover { color: var(--m-rose); }
+  .msg-row:hover .msg-row__t { font-style: italic; }
+  .msg-row:hover .msg-row__ar,
+  .msg-row:focus-visible .msg-row__ar { opacity: 1; transform: none; }
+
+  /* --- 01 ------------------------------------------------------------------ */
+  .msg-ink { font-size: clamp(30px, 3.5vw, 54px); line-height: 1.2; text-wrap: pretty; }
+
+  /* --- 02 ------------------------------------------------------------------ */
+  .msg-c2-head { font-size: clamp(44px, 6vw, 100px); }
+  .msg-c2-head .msg-block { margin-top: 12px; }
+  .msg-ghost {
+    display: block;
+    font-style: italic;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--m-ink);
+    background-image: linear-gradient(90deg, var(--m-ink) 50%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: 0 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .msg-pair { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .msg-fig { margin: 0; flex: 1 1 260px; display: flex; flex-direction: column; gap: 12px; }
+  .msg-fig--drop { margin-top: 120px; }
+
+  /* --- 03 ------------------------------------------------------------------ */
+  .msg-c3-head { font-size: clamp(46px, 6.2vw, 104px); margin-bottom: 56px; }
+  .msg-lm { display: block; overflow: clip; padding: 0 .12em .1em 0; margin-bottom: -.1em; }
+  .msg-lm > span { display: block; transform-origin: 0 100%; }
+  mark.msg-sw {
+    color: inherit;
+    background: linear-gradient(var(--m-rose-soft), var(--m-rose-soft)) no-repeat 0 88% / 100% .5em;
+    padding: 0 .08em;
+  }
+
+  /* --- 04 ------------------------------------------------------------------ */
+  .msg-tw { font-size: clamp(38px, 5vw, 82px); font-style: italic; margin: 64px 0; }
+  .msg-caret {
+    display: inline-block;
+    width: 3px;
+    height: .78em;
+    background: var(--m-rose);
+    margin-left: 8px;
+    vertical-align: -.04em;
+  }
+
+  /* --- 05 · horizontal ride -------------------------------------------------- */
+  .msg-c5 { padding-top: 160px; position: relative; }
+  .msg-hview {
+    height: min(100vh, 920px);
+    display: flex;
+    align-items: center;
+    overflow: clip;
+  }
+  .msg-htrack {
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    padding: 0 clamp(20px, 4.5vw, 64px);
+    width: max-content;
+  }
+  .msg-hcard { width: var(--w); flex: none; display: flex; flex-direction: column; gap: 24px; }
+  .msg-hcard--last { padding-right: 6vw; }
+  .msg-hph { width: var(--w); height: var(--h); flex: none; overflow: clip; border: 1px solid var(--m-line); }
+  .msg-hph--low { margin-top: 140px; }
+  .msg-hph :global(.pic) { width: 100%; height: 100%; aspect-ratio: auto; }
+  .msg-h-32 { font-size: clamp(32px, 3.4vw, 52px); }
+  .msg-h-36 { font-size: clamp(36px, 4vw, 60px); }
+  .msg-h-44 { font-size: clamp(44px, 5vw, 76px); }
+  .msg-h-52 { font-size: clamp(52px, 7vw, 120px); line-height: .92; }
+  .msg-hview { position: relative; }
+  .msg-hbar {
+    position: absolute;
+    left: 0; right: 0; bottom: 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .msg-hbar__rail { flex: 1; height: 1px; background: var(--m-line); position: relative; overflow: hidden; }
+  .msg-hbar__rail i { position: absolute; inset: 0; background: var(--m-rose); transform: scaleX(var(--p, 1)); transform-origin: 0 50%; }
+  .msg-c5-after { padding: 80px 0 160px; }
+
+  /* --- 06 ------------------------------------------------------------------ */
+  .msg-buwakan {
+    font-size: clamp(96px, 21vw, 340px);
+    font-style: italic;
+    line-height: .86;
+    letter-spacing: -.035em;
+    white-space: nowrap;
+    padding-left: 2vw;
+  }
+  .msg-gl { display: inline-block; }
+  .msg-trails { display: block; width: 100%; height: 140px; margin: 8px 0 64px; }
+  .msg-trail { stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .msg-tri {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr 1fr;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 96px;
+  }
+  .msg-tri__mid { transform: translateY(-48px); }
+  .msg-split { display: flex; flex-wrap: wrap; gap: 48px 72px; }
+  .msg-c6-lines { flex: 1 1 420px; font-size: clamp(36px, 4.2vw, 64px); }
+  .msg-col { flex: 1 1 420px; display: flex; flex-direction: column; gap: 26px; }
+
+  /* --- 07 ------------------------------------------------------------------ */
+  .msg-c7-row { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-end; }
+  .msg-steady { flex: 1 1 300px; display: flex; flex-direction: column; gap: 2px; }
+  .msg-st { position: relative; display: block; width: max-content; font-size: clamp(52px, 6.6vw, 110px); font-style: italic; color: var(--m-muted); }
+  .msg-st::after {
+    content: '';
+    position: absolute;
+    left: -.04em; right: -.08em; top: 56%;
+    height: 2px;
+    background: var(--m-rose);
+    transform: scaleX(var(--strike, 1));
+    transform-origin: 0 50%;
+  }
+  .msg-c7-focus { flex: 1 1 320px; font-size: clamp(28px, 3vw, 46px); line-height: 1.12; }
+
+  /* --- 08 ------------------------------------------------------------------ */
+  .msg-c8 { background: var(--m-bg2); overflow: visible; }
+  .msg-fillx {
+    font-size: clamp(84px, 15vw, 250px);
+    font-style: italic;
+    line-height: .9;
+    margin-bottom: 120px;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--m-rose);
+    background-image: linear-gradient(0deg, var(--m-rose) 50%, transparent 50%);
+    background-size: 100% 200%;
+    background-position: 0 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+  .msg-stacks { display: flex; flex-direction: column; gap: 48px; max-width: 920px; margin-left: auto; padding-bottom: 120px; }
+  .msg-stack {
+    background: var(--m-card);
+    border: 1px solid var(--m-line);
+    border-radius: 6px;
+    padding: clamp(28px, 4vw, 56px);
+    min-height: 440px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 40px;
+    box-shadow: 0 -30px 60px rgba(0, 0, 0, .25);
+    transform-origin: 50% 0;
+  }
+  .msg-c8-close { font-size: clamp(36px, 4.6vw, 74px); max-width: 1100px; }
+
+  /* --- 09 / 10 ------------------------------------------------------------- */
+  .msg-c9-head { font-size: clamp(42px, 5.6vw, 94px); }
+  .msg-c10-head { font-size: clamp(72px, 10vw, 170px); font-style: italic; line-height: .88; }
+
+  /* --- 11 · marquee ----------------------------------------------------------- */
+  .msg-band {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-block: 1px solid var(--m-line);
+    padding: 26px 0;
+    margin-bottom: 110px;
+  }
+  .msg-band__row { overflow: clip; }
+  .msg-mq { display: flex; width: max-content; }
+  .msg-mq__item {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    padding-right: 36px;
+    font-size: clamp(44px, 6vw, 100px);
+    white-space: nowrap;
+  }
+  .msg-outline { color: transparent; -webkit-text-stroke: 1px var(--m-rose); }
+
+  /* --- 12 ------------------------------------------------------------------ */
+  .msg-cascade { display: flex; flex-direction: column; gap: 10px; margin-bottom: 110px; }
+  .msg-cas { font-size: clamp(36px, 5vw, 84px); }
+
+  /* --- 13 ------------------------------------------------------------------ */
+  .msg-c13 { background: var(--m-rose); color: var(--m-on-rose); padding: 180px 0 220px; }
+  .msg-c13 ::selection { background: var(--m-on-rose); color: var(--m-rose); }
+  .msg-chh--on-rose { --rule-c: var(--m-on-rose); }
+  .msg-num--on-rose { -webkit-text-stroke-color: var(--m-on-rose); }
+  .msg-c13-lede { font-size: clamp(22px, 2vw, 28px); line-height: 1.55; max-width: 720px; margin: 0 0 160px auto; text-wrap: pretty; }
+  .msg-c13-stage { position: relative; display: grid; place-items: center; }
+  .msg-c13-heart {
+    position: absolute;
+    width: min(78vw, 820px);
+    height: auto;
+    fill: none;
+    stroke: var(--m-on-rose);
+    stroke-width: .12;
+    opacity: .35;
+    pointer-events: none;
+  }
+  .msg-c13-head { position: relative; font-size: clamp(84px, 15.5vw, 260px); font-style: italic; text-align: center; line-height: .86; }
+
+  /* --- 14 ------------------------------------------------------------------ */
+  .msg-c14 { background: var(--m-bg2); padding-bottom: 0; }
+  .msg-finale { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 44px; }
+  .msg-finale__a { font-size: clamp(30px, 3.8vw, 60px); max-width: 1000px; line-height: 1.1; }
+  .msg-wave { font-size: clamp(42px, 7vw, 116px); font-style: italic; color: var(--m-rose); line-height: 1.05; overflow-wrap: anywhere; }
+  .msg-wv { display: inline-block; }
+  .msg-hearts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 760px; }
+  .msg-heart { display: block; }
+  .msg-finale__b { font-size: clamp(30px, 3.6vw, 56px); }
+  .msg-finale__c { font-size: clamp(56px, 9vw, 156px); font-style: italic; line-height: .95; margin-top: 40px; }
+  .msg-again {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 64px;
+    padding: 0 24px;
+    border: 1px solid var(--m-line);
+    border-radius: 999px;
+    color: var(--m-muted) !important;
+  }
+  .msg-again:hover { color: var(--m-rose) !important; border-color: var(--m-rose); }
+  .msg-finale { position: relative; }
+  .msg-burst { position: absolute; left: 0; top: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; fill: var(--m-rose); pointer-events: none; }
+  .msg-fch { display: inline-block; }
+  /* Tall enough for the whole word, descenders included; the clip only hides
+     the letters while they rise into place. */
+  .msg-foot { overflow: clip; margin-top: 120px; padding-bottom: 2vw; border-top: 1px solid var(--m-line); }
+  .msg-foot__word {
+    font-size: 31vw;
+    font-style: italic;
+    line-height: 1.25;
+    white-space: nowrap;
+    color: var(--m-rose);
+    letter-spacing: -.04em;
+    margin-left: -1vw;
+  }
+
+  /* --- small screens ----------------------------------------------------------- */
+  @media (max-width: 860px) {
+    .msg-side { max-width: none; }
+    .msg-stick { flex-direction: row; align-items: flex-end; gap: 20px; }
+    .msg-num { font-size: 88px; }
+    .msg-ch { padding: 110px 0; }
+    .msg-hero__top { top: 88px; }
+    .msg-hero__top .msg-muted { display: none; }
+    .msg-tri { grid-template-columns: 1fr 1fr; }
+    .msg-tri__mid { transform: none; grid-column: 1 / -1; grid-row: 1; }
+    .msg-fig--drop { margin-top: 0; }
+    .msg-hph--low { margin-top: 0; }
+    .msg-stack { min-height: 0; }
+  }
+
+  /* --- reduced motion ----------------------------------------------------------
+     ScrollSmoother is not mounted, so native sticky works again: the side
+     columns and the apology cards stick, and the ride becomes a row you can
+     swipe or scroll sideways. */
+  @media (min-width: 861px) {
+    :global(html[data-motion='reduced']) .msg-stick { position: sticky; top: 112px; }
+  }
+  :global(html[data-motion='reduced']) .msg-stack { position: sticky; top: var(--top); }
+  :global(html[data-motion='reduced']) .msg-hview { overflow-x: auto; height: auto; padding-block: 48px; }
+  :global(html[data-motion='reduced']) .msg-hph--low { margin-top: 0; }
+  :global(html[data-motion='reduced']) .msg-hbar { display: none; }
+</style>

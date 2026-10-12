@@ -1,0 +1,167 @@
+---
+/**
+ * The shell every page sits in.
+ *
+ * Structure matters here: ScrollSmoother transforms #smooth-content, so
+ * anything that must stay fixed to the viewport (navigation, the cursor, the
+ * prologue) lives OUTSIDE the wrapper. Putting a fixed element inside it is
+ * the classic way to end up with a "fixed" header that scrolls.
+ */
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  /** Page-level tone. Chapters override it per section with data-tone. */
+  tone?: 'light' | 'dark';
+}
+
+const {
+  title = 'My Langga — Britney & Jeevie',
+  description = 'A love story in five chapters. Jeevie & Britney, since May 14, 2022.',
+  tone = 'light',
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en" data-tone={tone}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="theme-color" content="#14110F" />
+  <meta name="color-scheme" content="light" />
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+
+  <!-- The two faces needed for first paint: the prologue's question is
+       Fraunces italic at --t-mega, and every kicker around it is the sans.
+       Fraunces roman is the body face but the prologue covers the document
+       while it loads, so it can arrive with the stylesheet. -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="/fonts/fraunces-latin-italic.woff2" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+        href="/fonts/instrument-sans-latin-normal.woff2" />
+
+  {/*
+    Mark the document before first paint: motion is always full, and a
+    visitor who already entered this session skips the prologue. Inline and
+    synchronous is the only way to beat the first paint.
+  */}
+  <script is:inline>
+    (function () {
+      try {
+        // The site always runs in full motion (motion/core.js).
+        document.documentElement.dataset.motion = 'full';
+        if (sessionStorage.getItem('langga-entered') === '1') {
+          document.documentElement.dataset.entered = '1';
+        }
+      } catch (e) {
+        document.documentElement.dataset.motion = 'full';
+      }
+    })();
+  </script>
+</head>
+
+<body>
+  <a class="skip-link" href="#story">Skip to the story</a>
+
+  <slot name="chrome" />
+
+  <!-- ScrollSmoother's required pair. Nothing fixed may live in here. -->
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+      <slot />
+    </div>
+  </div>
+
+  <!-- Custom cursor. Inert until motion/core.js confirms a fine pointer and
+       full motion; `data-cursor` on <html> is what hides the native arrow. -->
+  <div class="cursor" data-cursor-dot aria-hidden="true"></div>
+  <div class="cursor-ring" data-cursor-ring aria-hidden="true"></div>
+</body>
+</html>
+
+<style is:global>
+  /* The smoother pair. These get transformed, so they must not create a
+     containing block for the fixed chrome outside them. */
+  #smooth-wrapper { overflow: hidden; }
+  #smooth-content { will-change: transform; }
+
+  /* With motion off ScrollSmoother never mounts, and the wrapper's
+     overflow:hidden would clip position:sticky chapters. */
+  html[data-motion='reduced'] #smooth-wrapper { overflow: visible; }
+
+  /* The gallery's WebGL layer (three/roomLens.js) sits behind the page. */
+  .room-lens {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: var(--z-base);
+    background: var(--bone);
+    pointer-events: none;
+  }
+  html[data-room-gl='1'] #smooth-wrapper { position: relative; z-index: 1; }
+
+  .cursor,
+  .cursor-ring {
+    position: fixed;
+    /* Parked off-screen: at 0,0 the ring shows as an arc in the corner until
+       the pointer first moves. */
+    top: -100px;
+    left: -100px;
+    z-index: var(--z-cursor);
+    pointer-events: none;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity var(--d-base) var(--e-out);
+  }
+  /* Only once the pointer has actually moved — see mountCursor(). */
+  html[data-cursor='on'] .cursor[data-live],
+  html[data-cursor='on'] .cursor-ring[data-live] { opacity: 1; }
+
+  .cursor {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--ember);
+  }
+
+  .cursor-ring {
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 1px solid rgba(200, 85, 61, .5);
+    transition: opacity var(--d-base) var(--e-out),
+                width var(--d-base) var(--e-snap),
+                height var(--d-base) var(--e-snap),
+                margin var(--d-base) var(--e-snap),
+                background-color var(--d-base) var(--e-out),
+                border-color var(--d-base) var(--e-out);
+  }
+  .cursor-ring[data-state='active'] {
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    background: rgba(200, 85, 61, .08);
+    border-color: rgba(200, 85, 61, .8);
+  }
+  .cursor-ring[data-press='on'] {
+    width: 26px;
+    height: 26px;
+    margin: -13px 0 0 -13px;
+  }
+
+  /* SplitText shards. `lines` need overflow hidden on a wrapper to mask from,
+     which splitLines() gives us via linesClass. */
+  .split-line { overflow: hidden; display: block; }
+  .split-word,
+  .split-char { display: inline-block; will-change: transform; }
+</style>

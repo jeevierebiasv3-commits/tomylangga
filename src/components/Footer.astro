@@ -1,0 +1,58 @@
+---
+/**
+ * The colophon. Deliberately plain — the story has had its ending already.
+ */
+const year = new Date().getFullYear();
+---
+<footer class="foot" data-tone="dark">
+  <div class="frame foot__inner">
+    <p class="foot__mark">
+      <span class="foot__dot" aria-hidden="true"></span>
+      <span>Jeevie &amp; Britney</span>
+    </p>
+    <p class="foot__meta mono">
+      J &hearts; B &mdash; since <time datetime="2022-05-14">May 14, 2022</time>
+    </p>
+    <p class="foot__made">
+      Made with love, by Jeevie &middot; <span>&copy; {year}</span>
+    </p>
+    <a class="foot__link" href="/gallery">All 104 frames<span aria-hidden="true"> &#8599;</span></a>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    background: var(--ink);
+    color: var(--bone-58);
+    padding-block: var(--s-8);
+  }
+  .foot__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-5);
+    font-size: var(--t-xs);
+  }
+  .foot__mark {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--bone);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+  }
+  .foot__dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ember);
+  }
+  .foot__meta { color: var(--bone-muted); }
+  .foot__made { color: var(--bone-muted); }
+  .foot__link {
+    color: var(--tungsten);
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+  }
+</style>

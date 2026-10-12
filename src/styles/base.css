@@ -1,0 +1,238 @@
+/* ============================================================================
+   Langga — base layer
+   ----------------------------------------------------------------------------
+   Reset, semantic typography, focus, and the global reduced-motion gate.
+   Component styling lives in each .astro file's scoped <style>. Nothing
+   decorative belongs here.
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* The UA rule for this is a bare attribute selector, so any component rule
+   that sets `display` silently overrides it and "hidden" elements render.
+   Make it mean what it says. */
+[hidden] { display: none !important; }
+
+html {
+  /* No scroll-behavior:smooth — ScrollSmoother/GSAP owns scrolling, and the
+     two fight each other. Anchor jumps are handled in motion/core.js. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--page-text);
+  font-family: var(--font-sans);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+
+  /* Let the browser drive Fraunces' opsz axis from font-size. This is the
+     default, but it is stated because the whole type system leans on it:
+     without it every size renders at the 9pt master and the display steps
+     lose their contrast. */
+  font-optical-sizing: auto;
+
+  /* WONK off by default, so the swashy alternates never turn up in running
+     text. font-variation-settings inherits, so this covers the document and
+     the display roles override it. Needed explicitly because the instanced
+     file ships with WONK defaulting to 1. */
+  font-variation-settings: var(--wonk-text);
+}
+
+/* The display roles: big enough that Fraunces' alternates read as character
+   rather than noise. Kept in one place so the distinction stays a decision
+   rather than a per-component accident. */
+.u-display,
+h1, h2 {
+  font-variation-settings: var(--wonk-display);
+}
+
+/* Scroll is locked until the prologue hands over. core.js removes this. */
+body[data-locked] { overflow: hidden; height: 100dvh; }
+
+h1, h2, h3, h4, p, figure, blockquote, ul, ol, dl { margin: 0; }
+ul[role='list'], ol[role='list'] { list-style: none; padding: 0; }
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+img, video { height: auto; }
+
+input, button, textarea, select { font: inherit; color: inherit; }
+
+/* --- headings ------------------------------------------------------------ */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  line-height: var(--lh-head);
+  letter-spacing: var(--ls-tight);
+  text-wrap: balance;
+}
+h1 { font-size: var(--t-xxl); line-height: var(--lh-tight); letter-spacing: var(--ls-mega); }
+h2 { font-size: var(--t-xl);  line-height: var(--lh-snug); }
+h3 { font-size: var(--t-lg); }
+h4 { font-size: var(--t-md); }
+
+p { text-wrap: pretty; }
+
+/* --- links --------------------------------------------------------------- */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--d-base) var(--e-out);
+}
+a:hover { color: var(--ember-text); }
+[data-tone='dark'] a:hover { color: var(--tungsten); }
+
+::selection { background: rgba(200, 85, 61, .28); color: var(--ink); }
+[data-tone='dark'] ::selection { background: rgba(232, 176, 122, .30); color: var(--bone); }
+
+/* --- focus ---------------------------------------------------------------
+   Always visible, never removed. The ring colour follows the section tone,
+   so it stays legible on both bone and ink.
+   ------------------------------------------------------------------------- */
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* --- skip link ------------------------------------------------------------ */
+.skip-link {
+  position: fixed;
+  top: var(--s-4);
+  left: var(--s-4);
+  z-index: var(--z-skip);
+  padding: var(--s-3) var(--s-5);
+  background: var(--ink);
+  color: var(--bone);
+  border-radius: var(--r-pill);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  letter-spacing: var(--ls-kicker);
+  text-transform: uppercase;
+  transform: translateY(calc(-100% - var(--s-6)));
+  transition: transform var(--d-base) var(--e-snap);
+}
+.skip-link:focus-visible { transform: translateY(0); color: var(--bone); }
+
+/* --- shared primitives ---------------------------------------------------- */
+
+/* Visually hidden but available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The uppercase, wide-tracked label that opens each chapter. */
+.kicker {
+  font-family: var(--font-sans);
+  font-size: var(--t-xxs);
+  font-weight: 500;
+  letter-spacing: var(--ls-kicker);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+[data-tone='dark'] .kicker { color: var(--bone-58); }
+
+/* Coordinates, dates, counters. */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: var(--ls-wide);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The romantic voice. Used for display lines and emphasis, never body copy. */
+.serif {
+  font-family: var(--font-serif);
+  font-weight: var(--w-serif);
+  font-style: italic;
+  letter-spacing: var(--ls-norm);
+}
+
+.measure   { max-width: var(--measure); }
+.measure-n { max-width: var(--measure-n); }
+
+/* Page frame. Chapters opt in; full-bleed media sits outside it. */
+.frame {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* The chapter rail is fixed over the right edge. Where it is present, keep
+   text out from under it — a tick mark sitting on a line of body copy reads
+   as a rendering fault. Only on the widths where the rail actually shows. */
+@media (min-width: 64rem) {
+  body:has(.rail) .frame { padding-right: calc(var(--gutter) + 3.25rem); }
+}
+
+/* The grain overlay, declared once. Applied to <body::after>. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  background-image: var(--grain);
+  opacity: var(--grain-opacity);
+  mix-blend-mode: multiply;
+}
+[data-tone='dark'] body::after { mix-blend-mode: screen; }
+
+/* ----------------------------------------------------------------------------
+   Reduced motion.
+
+   This is the hard floor. Whatever any component or GSAP timeline does, when
+   motion is off every CSS transition and animation collapses to effectively
+   instant, and scroll snapping is released. JS checks the same signal through
+   MOTION in motion/core.js, so the two can never disagree.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) *,
+  html:not([data-motion='full']) *::before,
+  html:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ----------------------------------------------------------------------------
+   Custom cursor.
+
+   Gated to fine pointers AND full motion. The native cursor is only hidden
+   once JS has confirmed both and added `data-cursor` to <html>; if the script
+   never runs, the real cursor is never taken away.
+   -------------------------------------------------------------------------- */
+html[data-cursor='on'] body,
+html[data-cursor='on'] a,
+html[data-cursor='on'] button,
+html[data-cursor='on'] [role='button'] { cursor: none; }
+
+@media (pointer: coarse) {
+  html[data-cursor='on'] body,
+  html[data-cursor='on'] a,
+  html[data-cursor='on'] button { cursor: auto; }
+}

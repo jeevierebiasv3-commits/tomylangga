@@ -1,0 +1,184 @@
+---
+/**
+ * Chapter III, movement two — frames we kept.
+ *
+ * Ten photographs, one at a time, arriving into a held frame. The old build
+ * spent 1280vh on this; it now runs in roughly a third of that and loses
+ * nothing, because the pacing comes from the stagger rather than from sheer
+ * scroll distance.
+ *
+ * With motion off it becomes a plain grid — ten figures, in order.
+ */
+import Picture from '../../ui/Picture.astro';
+import { FRAMES } from '../../../data/frames.js';
+---
+<div class="fr" data-frames>
+  <div class="fr__pin" data-frames-pin>
+
+    <div class="fr__bar">
+      <p class="fr__count mono" aria-hidden="true">
+        <span data-frames-counter>01</span>
+        <span class="fr__of">/ {String(FRAMES.length).padStart(2, '0')}</span>
+      </p>
+      <p class="fr__label kicker">Frames we kept</p>
+      <ol class="fr__ticks" aria-hidden="true">
+        {FRAMES.map(() => <li><i data-frames-tick></i></li>)}
+      </ol>
+    </div>
+
+    <ol class="fr__stack" data-frames-stack>
+      {FRAMES.map((f, i) => (
+        <li class="fr__item" data-frames-item data-index={i}>
+          <figure class="fr__card">
+            <Picture
+              id={f.media}
+              alt={f.alt}
+              sizes="(max-width: 48rem) 78vw, 34vw"
+              ratio="4 / 5"
+            />
+          </figure>
+        </li>
+      ))}
+    </ol>
+
+    <p class="fr__cue ch__cue" aria-hidden="true">keep scrolling</p>
+  </div>
+</div>
+
+<style>
+  .fr {
+    background: var(--bone);
+    color: var(--ink);
+  }
+
+  .fr__pin {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  /* --- the counter bar ------------------------------------------------------ */
+  .fr__bar {
+    position: absolute;
+    top: var(--s-8);
+    left: var(--gutter);
+    right: var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: var(--s-5);
+    z-index: 2;
+  }
+  .fr__count {
+    font-size: var(--t-md);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    gap: .3em;
+    overflow: hidden;      /* the digit flap is clipped to the line */
+  }
+  .fr__count > [data-frames-counter] { display: block; }
+  .fr__of { color: var(--ink-muted); }
+  .fr__label { flex: 1; }
+
+  .fr__ticks {
+    display: flex;
+    gap: 5px;
+    list-style: none;
+    margin: 0; padding: 0;
+  }
+  .fr__ticks i {
+    display: block;
+    width: 16px;
+    height: 1px;
+    background: var(--ink-12);
+    transition: background-color var(--d-base) var(--e-out),
+                transform var(--d-base) var(--e-snap);
+  }
+  .fr__ticks i[data-on='1'] {
+    background: var(--ember);
+    transform: scaleY(2);
+  }
+
+  /* --- the stack --------------------------------------------------------------
+     Every photograph occupies the same cell, and motion/memories.js seats them
+     at different depths so the cell reads as a deck rather than as a slot. The
+     perspective origin sits above centre: the cards recede upward, which is
+     how a held stack looks from a seated viewer. */
+  .fr__stack {
+    position: relative;
+    list-style: none;
+    margin: 0; padding: 0;
+    width: min(26rem, 76vw);
+    aspect-ratio: 4 / 5;
+    perspective: 1500px;
+    perspective-origin: 50% 42%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .fr__item {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, opacity, filter;
+  }
+
+  .fr__card {
+    margin: 0;
+    height: 100%;
+    background: var(--bone-warm);
+    padding: var(--s-3);
+    box-shadow: var(--shadow-lift);
+    border: 1px solid var(--ink-06);
+    /* The card is the thing catching the light; rounding it here rather than
+       on the item keeps the 3D transform off a rounded clip. */
+    border-radius: 2px;
+  }
+  .fr__card :global(.pic) { height: 100%; }
+
+  .fr__cue {
+    position: absolute;
+    bottom: var(--s-7);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  @media (max-width: 48rem) {
+    .fr__bar { top: var(--s-6); gap: var(--s-4); }
+    .fr__label { display: none; }
+    .fr__stack { width: 74vw; }
+  }
+
+  /* --- reduced motion ----------------------------------------------------------
+     The stack unstacks: ten figures in a readable column. */
+  :global(html[data-motion='reduced']) .fr__pin {
+    min-height: 0;
+    display: block;
+    overflow: visible;
+    padding: var(--s-9) var(--gutter);
+  }
+  :global(html[data-motion='reduced']) .fr__bar {
+    position: static;
+    margin-bottom: var(--s-6);
+  }
+  :global(html[data-motion='reduced']) .fr__ticks { display: none; }
+  :global(html[data-motion='reduced']) .fr__stack {
+    position: static;
+    width: 100%;
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--s-6);
+    max-width: var(--maxw);
+    margin-inline: auto;
+  }
+  :global(html[data-motion='reduced']) .fr__item {
+    position: static;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  :global(html[data-motion='reduced']) .fr__cue { display: none; }
+</style>

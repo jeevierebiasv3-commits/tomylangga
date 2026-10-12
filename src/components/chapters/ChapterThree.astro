@@ -1,0 +1,25 @@
+---
+/**
+ * Chapter III — The places we went.  (Shared memories)
+ *
+ * The long chapter, in four movements: the dates read sideways, ten frames
+ * one at a time, the flower date, and the guided tour. Each movement is its
+ * own component because each has genuinely different mechanics.
+ */
+import Journey from './three/Journey.astro';
+import Frames from './three/Frames.astro';
+import Flowers from './three/Flowers.astro';
+import Tour from './three/Tour.astro';
+---
+<section class="ch three" id="chapter-iii" aria-labelledby="ch3-title" data-chapter="iii">
+  <h2 class="sr-only" id="ch3-title">Chapter three — the places we went</h2>
+
+  <div class="ch__movement"><Journey /></div>
+  <div class="ch__movement"><Frames /></div>
+  <div class="ch__movement"><Flowers /></div>
+  <div class="ch__movement"><Tour /></div>
+</section>
+
+<style>
+  .three { background: var(--bone); }
+</style>

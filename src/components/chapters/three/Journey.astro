@@ -1,0 +1,388 @@
+---
+/**
+ * Chapter III, movement one — the dates, read sideways.
+ *
+ * A pinned horizontal track. The accessibility problem with every one of
+ * these is the same: the cards are offscreen to the right, so tabbing into
+ * one scrolls nothing and focus disappears. Here each card is a real
+ * focusable article, and motion/memories.js scrolls the pin to whichever card
+ * receives focus — so the keyboard path and the scroll path land in the same
+ * place.
+ *
+ * The cards are plates on a rail: one paper surface each, the photograph bled
+ * to the plate's own edge, every plate the same height so the rail reads as a
+ * deliberate sequence rather than as drift. A progress rail under the pin
+ * says how far through the four the reader is, which a horizontal scroll
+ * otherwise hides completely.
+ *
+ * With motion off the track is a plain vertical stack of four articles.
+ */
+import Picture from '../../ui/Picture.astro';
+import { JOURNEY } from '../../../data/journey.js';
+---
+<div class="jr" data-journey>
+  <div class="jr__pin" data-journey-pin>
+    <div class="jr__track" data-journey-track>
+
+      <div class="jr__intro">
+        <p class="ch__eyebrow"><span class="ch__numeral">III</span><span>Shared memories</span></p>
+        <h3 class="jr__intro-title" data-split>Selected dates &amp; adventures</h3>
+        <p class="ch__lede">
+          Four of them, in the order they happened. The story moves sideways here.
+        </p>
+        <p class="jr__cue ch__cue" aria-hidden="true">keep scrolling</p>
+      </div>
+
+      {JOURNEY.map((card) => (
+        <article
+          class="jr__card"
+          tabindex="0"
+          data-journey-card
+          aria-labelledby={`jr-${card.n}-title`}
+        >
+          <div class="jr__media" data-parallax="10">
+            <Picture
+              id={card.media}
+              alt={card.alt}
+              sizes="(max-width: 64rem) 92vw, 36vw"
+              fit="cover"
+            />
+            <p class="jr__overlay" aria-hidden="true">
+              {card.overlay.map((l) => <span>{l}</span>)}
+            </p>
+          </div>
+
+          <div class="jr__body">
+            <p class="jr__meta mono">
+              <span class="jr__n">/{card.n}</span>
+              {card.dateLabel && (
+                card.date
+                  ? <time datetime={card.date}>{card.dateLabel}</time>
+                  : <span>{card.dateLabel}</span>
+              )}
+              <span>{card.place}</span>
+            </p>
+
+            <h4 class="jr__title" id={`jr-${card.n}-title`}>{card.title}</h4>
+            <p class="jr__quote">{card.quote}</p>
+            <p class="jr__text">{card.body}</p>
+          </div>
+
+          <span class="jr__ghost" aria-hidden="true">{card.n}</span>
+        </article>
+      ))}
+
+      <div class="jr__end" aria-hidden="true">
+        <span class="jr__end-mark"></span>
+        <p class="jr__end-line">and that is only the half of it</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Position in the rail. Driven by motion/memories.js; inert without it. -->
+  <div class="jr__rail" data-journey-rail aria-hidden="true">
+    <p class="jr__rail-count mono">
+      <span data-journey-count>01</span>
+      <span class="jr__rail-sep">/</span>
+      <span>{String(JOURNEY.length).padStart(2, '0')}</span>
+    </p>
+    <div class="jr__rail-line"><span class="jr__rail-fill" data-journey-progress></span></div>
+  </div>
+</div>
+
+<style>
+  .jr {
+    position: relative;
+    background:
+      radial-gradient(130% 95% at 10% 0%, rgba(255, 255, 255, .55), transparent 62%),
+      #F1E4DC;
+    color: #3A302C;
+
+    /* One height for every plate on the rail. The track stretches its
+       children to this, so the plates cannot go ragged as the copy changes.
+       Tall enough that the photograph, not the prose, is what the reader
+       meets first. */
+    --jr-h: clamp(30rem, 84svh, 48rem);
+  }
+
+  .jr__pin {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .jr__track {
+    display: flex;
+    align-items: stretch;      /* every plate the same height */
+    gap: var(--s-6);
+    padding-inline: var(--gutter);
+    will-change: transform;
+  }
+
+  /* --- the opening panel --------------------------------------------------- */
+  .jr__intro {
+    flex: 0 0 auto;
+    width: min(30rem, 78vw);
+    display: grid;
+    align-content: center;
+    gap: var(--s-4);
+    padding-right: var(--s-7);
+    margin-right: var(--s-2);
+    border-right: 1px solid rgba(58, 48, 44, .14);
+  }
+  .jr__intro-title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-xl);
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+  .jr__intro .ch__lede { color: rgba(58, 48, 44, .74); max-width: 24rem; }
+  .jr__intro .ch__eyebrow { color: rgba(58, 48, 44, .72); }
+  .jr__intro .ch__eyebrow::after { background: rgba(58, 48, 44, .18); }
+  .jr__cue { color: rgba(58, 48, 44, .66); margin-top: var(--s-3); }
+
+  /* --- a plate ---------------------------------------------------------------- */
+  .jr__card {
+    position: relative;
+    flex: 0 0 auto;
+    width: min(62rem, 92vw);
+    min-height: var(--jr-h);
+    display: grid;
+    /* The photograph takes the larger share. The prose is the caption to it,
+       not the other way round. */
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    align-items: stretch;
+
+    background: #FBF4EE;
+    border: 1px solid rgba(58, 48, 44, .09);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    box-shadow:
+      0 1px 1px rgba(58, 48, 44, .05),
+      0 22px 50px -34px rgba(58, 48, 44, .55);
+    transition:
+      box-shadow var(--d-base) var(--e-out),
+      transform var(--d-base) var(--e-out);
+  }
+  .jr__card:hover {
+    transform: translateY(calc(-4px * var(--motion)));
+    box-shadow:
+      0 1px 1px rgba(58, 48, 44, .05),
+      0 34px 70px -34px rgba(58, 48, 44, .6);
+  }
+  /* Focus lands on the whole plate, so the ring has to read as the plate. */
+  .jr__card:focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 4px;
+  }
+
+  /* The photograph is the plate's left edge — bled, not inset. */
+  .jr__media {
+    position: relative;
+    overflow: hidden;
+    background: var(--bone-deep);
+  }
+  /* Picture.astro sets its own aspect-ratio; here the plate's height decides
+     the frame instead, so the ratio is released and the fill takes over. */
+  .jr__media :global(.pic) {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  /* The overlay line has to read over any photograph, bright or dark. */
+  .jr__media::after {
+    content: '';
+    position: absolute;
+    inset: 38% 0 0;
+    background: linear-gradient(to bottom, transparent, rgba(16, 10, 8, .8));
+    pointer-events: none;
+  }
+
+  .jr__overlay {
+    position: absolute;
+    left: var(--s-6);
+    bottom: var(--s-6);
+    right: var(--s-5);
+    z-index: 1;
+    display: grid;
+    gap: 3px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: clamp(1.2rem, 0.95rem + 1.05vw, 1.95rem);
+    line-height: 1.14;
+    color: #FBF3EE;
+    text-shadow: 0 2px 18px rgba(20, 14, 11, .85);
+  }
+
+  .jr__body {
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    padding: var(--s-6);
+  }
+
+  .jr__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-3);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(58, 48, 44, .62);
+  }
+  .jr__n { color: var(--ember-text); }
+
+  .jr__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.5rem);
+    line-height: 1.05;
+    color: #2E2622;
+    margin-top: var(--s-1);
+  }
+
+  .jr__quote {
+    font-family: var(--font-serif);
+    font-size: var(--t-md);
+    color: var(--ember-text);
+    line-height: 1.3;
+    padding-bottom: var(--s-4);
+    border-bottom: 1px solid rgba(58, 48, 44, .12);
+  }
+
+  .jr__text {
+    font-size: var(--t-sm);
+    line-height: 1.72;
+    color: rgba(58, 48, 44, .8);
+    text-wrap: pretty;
+  }
+
+  /* The index, set once at display size as a watermark in the plate's
+     corner — the only thing giving the four a sense of count while they are
+     moving past. */
+  .jr__ghost {
+    position: absolute;
+    right: var(--s-5);
+    bottom: -0.6rem;
+    font-family: var(--font-serif);
+    font-weight: var(--w-display);
+    font-size: 9rem;
+    line-height: .8;
+    color: rgba(58, 48, 44, .055);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* --- the closing panel ------------------------------------------------------- */
+  .jr__end {
+    flex: 0 0 auto;
+    width: min(24rem, 70vw);
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: var(--s-5);
+    padding-inline: var(--s-6);
+  }
+  .jr__end-mark {
+    width: 1px;
+    height: var(--s-8);
+    background: linear-gradient(to bottom, transparent, rgba(58, 48, 44, .35), transparent);
+  }
+  .jr__end-line {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-lg);
+    line-height: 1.15;
+    color: rgba(58, 48, 44, .5);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  /* --- progress rail -------------------------------------------------------- */
+  .jr__rail {
+    position: absolute;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: clamp(1.25rem, 4svh, 2.5rem);
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    pointer-events: none;
+  }
+  .jr__rail-count {
+    display: flex;
+    gap: .35em;
+    font-size: 10px;
+    letter-spacing: .16em;
+    color: rgba(58, 48, 44, .6);
+    font-variant-numeric: tabular-nums;
+  }
+  .jr__rail-sep { color: rgba(58, 48, 44, .3); }
+  .jr__rail-line {
+    flex: 1;
+    height: 1px;
+    background: rgba(58, 48, 44, .16);
+    overflow: hidden;
+  }
+  .jr__rail-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--ember);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  /* --- narrow ------------------------------------------------------------------- */
+  @media (max-width: 64rem) {
+    .jr { --jr-h: auto; }
+    .jr__card {
+      width: min(28rem, 86vw);
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    /* Taller than wide on narrow screens too — the photograph still leads. */
+    .jr__media { aspect-ratio: 4 / 5; }
+    .jr__body { padding: var(--s-5); }
+    .jr__ghost { font-size: 6rem; right: var(--s-4); }
+    .jr__intro {
+      width: min(24rem, 80vw);
+      border-right: 0;
+      padding-right: var(--s-5);
+    }
+  }
+
+  /* --- reduced motion -------------------------------------------------------------
+     No pin and no horizontal travel: four articles, stacked and readable. */
+  :global(html[data-motion='reduced']) .jr { --jr-h: auto; }
+  :global(html[data-motion='reduced']) .jr__pin {
+    min-height: 0;
+    overflow: visible;
+    padding-block: var(--s-8);
+  }
+  :global(html[data-motion='reduced']) .jr__track {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--s-7);
+    max-width: var(--maxw);
+    margin-inline: auto;
+    transform: none !important;
+  }
+  :global(html[data-motion='reduced']) .jr__intro,
+  :global(html[data-motion='reduced']) .jr__card,
+  :global(html[data-motion='reduced']) .jr__end { width: 100%; }
+  :global(html[data-motion='reduced']) .jr__intro {
+    border-right: 0;
+    padding-right: 0;
+  }
+  :global(html[data-motion='reduced']) .jr__card { min-height: 0; }
+  :global(html[data-motion='reduced']) .jr__cue,
+  :global(html[data-motion='reduced']) .jr__rail { display: none; }
+</style>

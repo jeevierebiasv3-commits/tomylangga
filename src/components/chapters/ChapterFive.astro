@@ -1,0 +1,248 @@
+---
+/**
+ * Chapter V — What comes next.  (Chapters unwritten)
+ *
+ * Three movements: the things still to do, the promise, and the last
+ * full-bleed frame.
+ *
+ * The "what comes next" list has no photographs yet — by design. Each entry
+ * can take a `media` id once Jeevie has one (src/data/future.js); until then
+ * the hover panel is typographic, which is a deliberate state rather than an
+ * empty slot.
+ */
+import Picture from '../ui/Picture.astro';
+import { FUTURE } from '../../data/future.js';
+---
+<section class="ch five" id="chapter-v" aria-labelledby="ch5-title" data-chapter="v">
+
+  <!-- Movement 1: what comes next ---------------------------------------- -->
+  <div class="ch__movement five__next">
+    <div class="frame">
+      <header class="ch__head">
+        <p class="ch__eyebrow">
+          <span class="ch__numeral">V</span>
+          <span>Chapters unwritten</span>
+        </p>
+        <h2 class="ch__title" id="ch5-title" data-split>The best parts are still ahead</h2>
+      </header>
+
+      <ul class="five__list" role="list" data-future>
+        {FUTURE.map((f) => (
+          <li class="five__row" data-future-row data-media={f.media ?? ''}>
+            <span class="five__n mono">{f.n}</span>
+            <span class="five__text">{f.title}</span>
+            <span class="five__mark" aria-hidden="true">&#8599;</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Only rendered once there is something to show. */}
+      {FUTURE.some((f) => f.media) && (
+        <div class="five__float" data-future-float aria-hidden="true">
+          {FUTURE.filter((f) => f.media).map((f) => (
+            <div class="five__float-img" data-future-img={f.media}>
+              <Picture id={f.media} alt="" sizes="20rem" ratio="4 / 3" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+
+  <!-- Movement 2: the promise --------------------------------------------- -->
+  <div class="ch__movement five__vows" data-tone="dark">
+    <div class="frame">
+      <p class="ch__eyebrow" data-reveal><span>The promise</span></p>
+      <blockquote class="five__vow">
+        <p data-words>I promise to keep choosing you,</p>
+        <p data-words>on the easy days and the heavy ones,</p>
+        <p data-words>in every city we have not seen yet,</p>
+        <p data-words><span class="ch__em">until the last chapter of this story.</span></p>
+        <cite>always, Jeevie</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- Movement 3: forever -------------------------------------------------- -->
+  <div class="ch__movement five__forever">
+    <figure class="five__forever-fig">
+      <div class="five__forever-media" data-parallax="12">
+        <Picture
+          id="still/forever"
+          alt="Britney and Jeevie together — the last frame of the story so far."
+          sizes="100vw"
+          ratio="16 / 9"
+        />
+      </div>
+      <figcaption class="five__forever-cap">
+        <p class="kicker">Our promise</p>
+        <p class="five__forever-line" data-split>Forever &amp; always</p>
+      </figcaption>
+    </figure>
+
+    <div class="frame five__close">
+      <p class="ch__prose five__close-text" data-reveal>
+        This is just the beginning of our story. Every day with you is a new page,
+        a new adventure, a new reason to smile. Here is to all the chapters yet to
+        be written, all the memories yet to be made, and all the love yet to be shared.
+      </p>
+      <p class="five__close-sign" data-reveal>
+        Jeevie &amp; Britney &middot;
+        <time datetime="2022-05-14">since May 14, 2022</time>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .five { background: var(--bone); }
+
+  /* --- what comes next ----------------------------------------------------- */
+  .five__next { position: relative; padding-bottom: var(--s-9); }
+
+  .five__list {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .five__row {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 1fr) 2rem;
+    align-items: center;
+    gap: var(--s-4);
+    padding-block: clamp(1.1rem, 0.6rem + 1.6vw, 2.2rem);
+    border-bottom: 1px solid var(--rule);
+    transition: color var(--d-base) var(--e-out),
+                padding-left var(--d-base) var(--e-snap);
+  }
+  .five__row:hover { color: var(--ember-text); padding-left: var(--s-4); }
+
+  .five__n { color: var(--ink-muted); }
+  .five__row:hover .five__n { color: var(--ember-text); }
+
+  .five__text {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-lg);
+    line-height: 1.1;
+  }
+
+  .five__mark {
+    justify-self: end;
+    color: var(--ink-muted);
+    opacity: 0;
+    transform: translate(-6px, 6px);
+    transition: opacity var(--d-base) var(--e-out), transform var(--d-base) var(--e-snap);
+  }
+  .five__row:hover .five__mark { opacity: 1; transform: none; color: var(--ember-text); }
+
+  .five__float {
+    position: fixed;
+    top: 0; left: 0;
+    width: 20rem;
+    pointer-events: none;
+    opacity: 0;
+    z-index: var(--z-raised);
+  }
+  .five__float-img {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-lift);
+  }
+
+  /* --- the promise ------------------------------------------------------------ */
+  .five__vows {
+    background: var(--ink);
+    color: var(--bone);
+    padding-block: var(--s-10);
+  }
+  .five__vow {
+    margin: var(--s-6) 0 0;
+    display: grid;
+    gap: var(--s-3);
+  }
+  .five__vow p {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-xl);
+    line-height: 1.2;
+    max-width: 24ch;
+  }
+  .five__vow cite {
+    display: block;
+    margin-top: var(--s-6);
+    font-family: var(--font-sans);
+    font-style: normal;
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--bone-muted);
+  }
+
+  /* --- forever ------------------------------------------------------------------ */
+  .five__forever-fig {
+    position: relative;
+    margin: 0;
+  }
+  /* max-height on an aspect-ratio box constrains its WIDTH as well, which is
+     how the last frame of the story ended up 150px short of the right edge.
+     Size the container instead and let the picture fill it. */
+  .five__forever-media {
+    width: 100%;
+    height: min(86svh, 56vw);
+    overflow: hidden;
+  }
+  .five__forever-media :global(.pic) {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .five__forever-cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    display: grid;
+    gap: var(--s-3);
+    justify-items: center;
+    text-align: center;
+    padding: var(--s-9) var(--gutter) var(--s-8);
+    background: linear-gradient(to bottom, transparent, rgba(16, 12, 10, .72) 45%, var(--bone));
+    color: var(--bone);
+  }
+  .five__forever-cap .kicker { color: rgba(244, 239, 232, .7); }
+
+  .five__forever-line {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: var(--t-xxl);
+    line-height: 1;
+    color: var(--bone);
+  }
+
+  .five__close {
+    padding-block: var(--s-8) var(--s-10);
+    display: grid;
+    gap: var(--s-5);
+  }
+  .five__close-text { font-size: var(--t-md); }
+  .five__close-sign {
+    font-size: var(--t-xs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  /* --- mobile -------------------------------------------------------------------- */
+  @media (max-width: 48rem) {
+    .five__row { grid-template-columns: 2.5rem minmax(0, 1fr) 1.5rem; }
+    .five__float { display: none; }
+    .five__vows { padding-block: var(--s-8); }
+    .five__forever-cap { padding-top: var(--s-8); }
+  }
+</style>

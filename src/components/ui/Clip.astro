@@ -1,0 +1,133 @@
+---
+/**
+ * A short, silent clip from the media manifest.
+ *
+ * Every clip is encoded without an audio track, so autoplay is never blocked
+ * and there is nothing for a viewer to be ambushed by. The poster carries the
+ * frame until the video is attached.
+ *
+ * `defer` leaves the src off the element entirely. Chapters with many clips
+ * (the guided tour) attach and detach sources through a small window so only
+ * a few decoders are ever live — see motion/memories.js.
+ */
+import { media } from '../../data/media.js';
+
+export interface Props {
+  /** Manifest key, e.g. "tour/tour-03". */
+  id: string;
+  /** Required. Describe what happens in the clip. */
+  alt: string;
+  /** Hold the src back for JS to attach later. */
+  defer?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  controls?: boolean;
+  class?: string;
+  ratio?: string;
+  fit?: 'cover' | 'contain';
+  preload?: 'none' | 'metadata' | 'auto';
+  /**
+   * Render only the poster frame, as a lazy <img>, with no <video> at all.
+   *
+   * A <video poster="..."> fetches its poster immediately whatever `preload`
+   * says, so a grid of 35 clips costs 35 eager image requests before the
+   * reader has scrolled anywhere near them. In a grid a clip is really just
+   * its first frame; the video itself belongs in the lightbox.
+   */
+  posterOnly?: boolean;
+  loading?: 'lazy' | 'eager';
+}
+
+const {
+  id,
+  alt,
+  defer = false,
+  autoplay = true,
+  loop = true,
+  controls = false,
+  class: className = '',
+  ratio,
+  fit = 'cover',
+  preload = 'none',
+  posterOnly = false,
+  loading = 'lazy',
+} = Astro.props;
+
+const m = media(id);
+if (m.kind !== 'video') {
+  throw new Error(`[Clip] "${id}" is a ${m.kind}, not a video. Use <Picture> instead.`);
+}
+
+const style = [
+  `--lqip:url(${m.lqip})`,
+  ratio ? `--ratio:${ratio}` : `--ratio:${m.w} / ${m.h}`,
+  `--fit:${fit}`,
+].join(';');
+---
+<div class:list={['clip', className]} style={style} data-clip data-src={m.src}>
+  {posterOnly ? (
+    <img
+      src={m.poster}
+      width={m.w}
+      height={m.h}
+      alt={alt}
+      loading={loading}
+      decoding="async"
+      onload="this.closest('[data-clip]').dataset.loaded='1'"
+    />
+  ) : (
+  <video
+    src={defer ? undefined : m.src}
+    poster={m.poster}
+    width={m.w}
+    height={m.h}
+    preload={preload}
+    muted
+    playsinline
+    autoplay={autoplay && !defer ? true : undefined}
+    loop={loop ? true : undefined}
+    controls={controls ? true : undefined}
+    aria-label={alt}
+    data-duration={m.duration}
+  ></video>
+  )}
+  <!-- The clips carry no audio and no essential information beyond the
+       photographs around them, so the accessible name on <video> is the
+       description. This keeps it available to assistive tech either way. -->
+  <span class="sr-only">{alt}</span>
+</div>
+
+<style>
+  .clip {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    background-color: var(--ink);
+    background-image: var(--lqip);
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* Same reasoning as Picture: fill the frame regardless of the reset. */
+  .clip video,
+  .clip img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: var(--fit);
+    display: block;
+  }
+
+  /* Poster images fade in over the blur-up, the same as a photograph. */
+  .clip img { opacity: 0; transition: opacity var(--d-slow) var(--e-out); }
+  .clip[data-loaded='1'] img { opacity: 1; }
+</style>
+
+<script>
+  // Catch posters that were already in cache before this ran.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-clip]')) {
+    const img = el.querySelector('img');
+    if (img && img.complete && img.naturalWidth > 0) el.dataset.loaded = '1';
+  }
+</script>

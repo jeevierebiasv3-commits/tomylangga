@@ -1,0 +1,153 @@
+---
+/**
+ * Chapter I — Before we spoke.  (Anticipation)
+ *
+ * A wedding in Balamban, an afternoon of looking across a crowd, and not one
+ * word exchanged. The chapter is built around that restraint: the photograph
+ * arrives slowly, the prose is a single column, and the movement ends on the
+ * thing that hadn't happened yet.
+ *
+ * All prose is Jeevie's, unchanged.
+ */
+import Picture from '../ui/Picture.astro';
+---
+<section class="ch one" id="chapter-i" aria-labelledby="ch1-title" data-chapter="i">
+
+  <!-- Movement 1: the arrival ------------------------------------------- -->
+  <div class="ch__movement one__open">
+    <div class="frame">
+      <header class="ch__head">
+        <p class="ch__eyebrow">
+          <span class="ch__numeral">I</span>
+          <span>Anticipation</span>
+        </p>
+        <h2 class="ch__title" id="ch1-title" data-split>Before we spoke</h2>
+      </header>
+    </div>
+
+    <figure class="ch__figure one__hero">
+      <div class="one__hero-media" data-mask data-parallax>
+        <Picture
+          id="parish/parish"
+          alt="The reception at San Vicente Ferrer Parish in Buanoy, Balamban — the wedding where Jeevie and Britney first saw each other."
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          ratio="16 / 10"
+        />
+      </div>
+
+      <figcaption class="one__hero-cap">
+        <span class="one__cap-card" data-reveal>
+          <strong>First meeting</strong>
+          <span class="mono"><time datetime="2022-05-14">May 14, 2022</time></span>
+          <span>San Vicente Ferrer Parish<br />Buanoy, Balamban, Cebu</span>
+        </span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- Movement 2: the looking ------------------------------------------- -->
+  <div class="ch__movement one__read">
+    <div class="frame one__grid">
+      <p class="ch__eyebrow one__marker" data-reveal>
+        <span class="mono">10.50&deg;N, 123.71&deg;E</span>
+      </p>
+
+      <div class="ch__prose" data-reveal data-delay="0.1">
+        <p>
+          It was a bright Saturday at my mother&rsquo;s nephew&rsquo;s wedding. I was just a
+          guest, but from the moment I saw her standing with the bridesmaids, I kept
+          stealing quick glances. She looked incredible in her dress, and every time she
+          laughed it felt like the whole place lit up. We didn&rsquo;t speak during the
+          ceremony or the reception, though I kept noticing her from across the crowd.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movement 3: the pause --------------------------------------------- -->
+  <div class="ch__movement">
+    <div class="ch__pause">
+      <p class="ch__pause-line" data-words>
+        A whole afternoon, and not one word &mdash;
+        <span class="ch__em">not yet.</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .one { padding-bottom: var(--s-9); }
+
+  /* --- the hero photograph ------------------------------------------------ */
+  .one__hero {
+    position: relative;
+    margin-top: var(--s-6);
+  }
+
+  .one__hero-media {
+    /* Full-bleed, but inset on the right so the caption card has somewhere to
+       sit without covering a face. */
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .one__hero-cap {
+    position: absolute;
+    left: var(--gutter);
+    bottom: calc(var(--s-6) * -1);
+    max-width: min(22rem, calc(100% - var(--gutter) * 2));
+  }
+
+  .one__cap-card {
+    display: grid;
+    gap: var(--s-2);
+    padding: var(--s-5);
+    background: var(--bone-warm);
+    border: 1px solid var(--ink-06);
+    box-shadow: var(--shadow-card);
+    font-size: var(--t-xs);
+    line-height: 1.6;
+    color: var(--ink-64);
+  }
+  .one__cap-card strong {
+    font-size: var(--t-xxs);
+    font-weight: 600;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .one__cap-card .mono { color: var(--ember-text); font-size: var(--t-xs); }
+
+  /* --- the reading column -------------------------------------------------- */
+  .one__read { padding-top: var(--s-10); }
+
+  .one__grid {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: start;
+  }
+
+  .one__marker {
+    padding-top: .4em;
+    color: var(--ink-muted);
+  }
+  .one__marker::after { display: none; }
+
+  /* --- mobile --------------------------------------------------------------- */
+  @media (max-width: 64rem) {
+    .one__grid { grid-template-columns: 1fr; gap: var(--s-5); }
+  }
+
+  @media (max-width: 48rem) {
+    .one__hero-cap {
+      position: static;
+      margin: var(--s-5) var(--gutter) 0;
+      max-width: none;
+    }
+    .one__cap-card { box-shadow: var(--shadow-soft); }
+    .one__read { padding-top: var(--s-8); }
+  }
+</style>

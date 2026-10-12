@@ -1,0 +1,268 @@
+---
+/**
+ * Chapter III, movement three — the flower date.
+ *
+ * A mosaic of every photograph from Buwakan, assembling out of nothing as you
+ * scroll through it. The layout is computed from the manifest rather than
+ * hand-written, so adding or removing a photograph re-flows the wall instead
+ * of leaving a hole — the old build had a hard-coded 22-tile grid that would
+ * have broken the moment the source folder changed.
+ *
+ * Each tile is a real button that opens the shared lightbox, so the wall is
+ * fully keyboard-operable.
+ */
+import Picture from '../../ui/Picture.astro';
+import { MEDIA } from '../../../data/media.js';
+
+const photos = Object.values(MEDIA)
+  .filter((m) => m.id.startsWith('buwakan/') && m.kind === 'image')
+  .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+
+// Lay the wall out so the whole thing fits inside one pinned viewport —
+// rows first, because the tiles are 3:4 and it is the row count that decides
+// whether the closing line gets pushed off the bottom of the screen.
+// A 16:9 viewport over 3:4 tiles wants roughly 2.3 columns per row.
+const rows = Math.max(1, Math.round(Math.sqrt(photos.length / 2.3)));
+const cols = Math.ceil(photos.length / rows);
+
+const tiles = photos.map((m, i) => {
+  const col = i % cols;
+  const row = Math.floor(i / cols);
+
+  // -1..1 across the wall in each axis
+  const nx = cols > 1 ? (col / (cols - 1)) * 2 - 1 : 0;
+  const ny = rows > 1 ? (row / (rows - 1)) * 2 - 1 : 0;
+
+  // Deterministic jitter, so the wall is lively but identical every build.
+  const jitter = (seed) => ((Math.sin(seed * 12.9898) * 43758.5453) % 1 + 1) % 1;
+  const j = jitter(i + 1);
+
+  return {
+    ...m,
+    col, row,
+    rot: (j - 0.5) * 2.8,
+    from: {
+      x: nx * (58 + j * 34),
+      y: ny * (46 + j * 30),
+      r: (j - 0.5) * 30,
+      s: 0.5 + j * 0.2,
+    },
+  };
+});
+---
+<div class="fl" data-flowers>
+  <div class="fl__pin" data-flowers-pin>
+    <div class="fl__bokeh" aria-hidden="true">
+      <i data-depth="0.05"></i><i data-depth="0.16"></i><i data-depth="0.32"></i>
+    </div>
+
+    <div class="fl__head">
+      <p class="kicker fl__kicker">Interlude &middot; the flower date</p>
+    </div>
+
+    <ul
+      class="fl__wall"
+      data-flowers-wall
+      style={`--cols:${cols}; --rows:${rows}`}
+      aria-label="Photographs from the flower date at Buwakan"
+    >
+      {tiles.map((t, i) => (
+        <li class="fl__cell">
+          <button
+            class="fl__tile"
+            type="button"
+            data-flowers-tile
+            data-lightbox-open={t.id}
+            style={`--rot:${t.rot}deg; --fx:${t.from.x}; --fy:${t.from.y}; --fr:${t.from.r}deg; --fs:${t.from.s}`}
+          >
+            <Picture
+              id={t.id}
+              alt={`Photograph ${i + 1} of ${tiles.length} from the flower date at Buwakan.`}
+              sizes="(max-width: 48rem) 34vw, 16vw"
+              ratio="3 / 4"
+            />
+            <span class="fl__n mono" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <span class="fl__zoom" aria-hidden="true">&#8689;</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+
+    <p class="fl__line" data-words>
+      You, and a fistful of flowers &mdash;
+      <span class="fl__em">I never stood a chance.</span>
+    </p>
+  </div>
+</div>
+
+<style>
+  .fl {
+    position: relative;
+    background:
+      radial-gradient(80% 60% at 50% 12%, #F2F7F8 0%, #DDEAEE 42%, #C2D5D6 72%, #A8BDBA 100%);
+    color: #22333A;
+  }
+
+  .fl__pin {
+    position: relative;
+    min-height: 100svh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--s-5);
+    align-content: center;
+    padding: var(--s-9) var(--gutter);
+    overflow: hidden;
+  }
+
+  /* --- bokeh depth ---------------------------------------------------------- */
+  .fl__bokeh { position: absolute; inset: -10%; pointer-events: none; }
+  .fl__bokeh i {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(44px);
+    opacity: .5;
+  }
+  .fl__bokeh i:nth-child(1) {
+    width: 38vw; height: 38vw; left: 4%; top: 8%;
+    background: radial-gradient(circle, rgba(217,165,160,.55), transparent 68%);
+  }
+  .fl__bokeh i:nth-child(2) {
+    width: 28vw; height: 28vw; right: 6%; top: 24%;
+    background: radial-gradient(circle, rgba(255,255,255,.6), transparent 66%);
+  }
+  .fl__bokeh i:nth-child(3) {
+    width: 44vw; height: 44vw; left: 32%; bottom: -12%;
+    background: radial-gradient(circle, rgba(126,148,144,.5), transparent 70%);
+  }
+
+  .fl__head { position: relative; z-index: 1; text-align: center; }
+  .fl__kicker { color: rgba(34, 51, 58, .74); }
+
+  /* --- the wall ---------------------------------------------------------------- */
+  .fl__wall {
+    position: relative;
+    z-index: 1;
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+    /* Sized so rows x tile-height still leaves room for the kicker and the
+       closing line inside one viewport. */
+    max-width: min(76rem, calc((62svh / var(--rows)) * 0.75 * var(--cols)));
+    display: grid;
+    grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+    gap: clamp(6px, 0.7vw, 14px);
+    align-content: center;
+  }
+
+  .fl__cell { display: block; }
+
+  .fl__tile {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: #DCE6E8;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transform: rotate(var(--rot));
+    transition: transform var(--d-base) var(--e-snap),
+                filter var(--d-base) var(--e-out),
+                opacity var(--d-base) var(--e-out),
+                box-shadow var(--d-base) var(--e-out);
+  }
+
+  /* Hovering one tile quiets the rest — the wall focuses on what you are
+     looking at. Driven by a class on the wall so it is one state, not 22. */
+  .fl__wall[data-hovering='1'] .fl__tile {
+    opacity: .4;
+    filter: saturate(.55);
+  }
+  .fl__wall[data-hovering='1'] .fl__tile:hover,
+  .fl__tile:focus-visible {
+    opacity: 1;
+    filter: none;
+    transform: rotate(0deg) scale(1.1);
+    z-index: 2;
+    box-shadow: var(--shadow-lift);
+  }
+  .fl__tile:focus-visible { outline: 2px solid var(--ember); outline-offset: 3px; }
+
+  .fl__n {
+    position: absolute;
+    left: 6px; top: 5px;
+    font-size: 8px;
+    letter-spacing: .14em;
+    color: rgba(255,255,255,.82);
+    text-shadow: 0 1px 6px rgba(0,0,0,.55);
+    opacity: 0;
+    transition: opacity var(--d-base) var(--e-out);
+  }
+  .fl__zoom {
+    position: absolute;
+    right: 6px; bottom: 5px;
+    font-size: 11px;
+    color: rgba(255,255,255,.9);
+    text-shadow: 0 1px 6px rgba(0,0,0,.55);
+    opacity: 0;
+    transition: opacity var(--d-base) var(--e-out);
+  }
+  .fl__tile:hover .fl__n,
+  .fl__tile:hover .fl__zoom,
+  .fl__tile:focus-visible .fl__n,
+  .fl__tile:focus-visible .fl__zoom { opacity: 1; }
+
+  /* --- the line ------------------------------------------------------------------ */
+  .fl__line {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-xl);
+    line-height: 1.18;
+    max-width: 24ch;
+    margin-inline: auto;
+    text-wrap: balance;
+  }
+  .fl__em { color: #9A4A36; }
+
+  /* --- mobile ---------------------------------------------------------------------
+     The wall is too dense to read at phone width, so it becomes a swipeable
+     strip — touch-first, not a shrunken grid. */
+  @media (max-width: 48rem) {
+    .fl__pin {
+      padding: var(--s-8) 0;
+      gap: var(--s-6);
+      /* auto rather than 1fr: the strip is short, and a stretching middle row
+         pushes the closing line to the far bottom of the screen. */
+      grid-template-rows: auto auto auto;
+    }
+    .fl__head, .fl__line { padding-inline: var(--gutter); }
+
+    .fl__wall {
+      display: flex;
+      gap: var(--s-3);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      padding-inline: var(--gutter);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .fl__wall::-webkit-scrollbar { display: none; }
+    .fl__cell { flex: 0 0 46vw; scroll-snap-align: center; }
+    .fl__tile { transform: none; }
+    .fl__wall[data-hovering='1'] .fl__tile { opacity: 1; filter: none; }
+  }
+
+  /* --- reduced motion ---------------------------------------------------------- */
+  :global(html[data-motion='reduced']) .fl__pin { min-height: 0; }
+  :global(html[data-motion='reduced']) .fl__tile {
+    opacity: 1 !important;
+    transform: rotate(var(--rot)) !important;
+  }
+  :global(html[data-motion='reduced']) .fl__bokeh { display: none; }
+</style>

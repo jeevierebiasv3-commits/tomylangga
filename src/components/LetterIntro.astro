@@ -1,0 +1,250 @@
+---
+/**
+ * The letter's intro — the threshold between the story and the letter.
+ *
+ * Built like the prologue, in the same three layers:
+ *
+ *   1. `.li__still`  pure CSS. A real composition — if WebGL never arrives,
+ *                    this is the intro.
+ *   2. `<canvas>`    the three.js envelope (scripts/three/letterScene.js),
+ *                    loaded as the section approaches and faded in over the
+ *                    still once it has drawn.
+ *   3. `.li__type`   the typography, choreographed against the scene's
+ *                    exposure so the words and the light arrive together.
+ *
+ * Unlike the prologue it is not a gate: it is a pinned stretch of the page.
+ * Scrolling through it opens the envelope (motion/letterIntro.js), and the
+ * camera pushes into the paper until the screen is the letter's own night,
+ * which is where Message.astro begins.
+ */
+---
+<section class="li" id="letter-intro" aria-labelledby="li-title" data-tone="dark" data-li>
+  <div class="li__pin" data-li-pin>
+    <div class="li__still" aria-hidden="true"></div>
+    <canvas class="li__canvas" data-li-canvas aria-hidden="true"></canvas>
+
+    <div class="li__type" data-li-type>
+      <p class="li__kicker kicker" data-li-kicker>One more thing, langga</p>
+
+      <p class="li__lead" data-li-lead>After all the places and all the photographs &mdash;</p>
+
+      <h2 class="li__title" id="li-title" data-li-title>&ldquo;I wrote you a letter.&rdquo;</h2>
+
+      <p class="li__date mono" data-li-date>
+        <span>Usa ka sulat</span>
+        <span class="li__sep">14 ka kapitulo &middot; para sa akong langga</span>
+      </p>
+
+      <a class="li__open" href="#the-letter" data-li-open data-magnetic="0.22">
+        <span class="li__open-label">Open the letter</span>
+        <svg class="li__open-ring" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+          <circle cx="60" cy="60" r="58" pathLength="1" data-li-ring />
+        </svg>
+      </a>
+    </div>
+
+    <div class="li__foot" data-li-foot aria-hidden="true">
+      <span class="kicker" data-li-hint>Scroll to open</span>
+      <span class="li__line"><i></i></span>
+    </div>
+
+    <div class="li__progress" aria-hidden="true"><i data-li-progress></i></div>
+    <div class="li__veil" data-li-veil aria-hidden="true"></div>
+  </div>
+</section>
+
+<style>
+  .li {
+    position: relative;
+    background: #100C10;
+    color: var(--bone);
+  }
+
+  .li__pin {
+    position: relative;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* --- layer 1: the CSS composition ---------------------------------------- */
+  /* The envelope's glow in the dark: a warm bloom low in the frame and a
+     rose rim, built from gradients so it paints with the document. */
+  .li__still {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(24% 18% at 50% 62%, rgba(242, 180, 126, .30), transparent 72%),
+      radial-gradient(60% 40% at 30% 75%, rgba(238, 138, 134, .12), transparent 70%),
+      radial-gradient(90% 70% at 50% 50%, #1B1418, #100C10 72%);
+    transition: opacity 1.2s var(--e-soft);
+  }
+  .li[data-scene='on'] .li__still { opacity: 0; }
+
+  .li__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.2s var(--e-soft);
+  }
+  .li[data-scene='on'] .li__canvas { opacity: 1; }
+
+  /* --- layer 3: the typography ---------------------------------------------- */
+  .li__type::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(58% 42% at 50% 46%, rgba(10, 8, 12, .5), transparent 72%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .li__type {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-5);
+    text-align: center;
+    padding: var(--s-9) var(--gutter);
+    text-shadow: 0 2px 40px rgba(6, 7, 10, .55);
+  }
+
+  .li__kicker { color: var(--bone-58); margin-bottom: var(--s-4); }
+
+  .li__lead {
+    font-family: var(--font-serif);
+    font-weight: var(--w-serif);
+    font-size: var(--t-md);
+    line-height: 1.3;
+    color: var(--bone-78);
+    letter-spacing: .01em;
+  }
+
+  .li__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: var(--t-mega);
+    line-height: var(--lh-tight);
+    letter-spacing: -.02em;
+    color: #F9E3D2;
+    max-width: 16ch;
+    text-wrap: balance;
+    padding-bottom: .12em;
+    margin-bottom: var(--s-3);
+  }
+  /* Word masks are created at runtime, so they need to be global. */
+  .li__title :global(.li__mask) {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    padding: 0 .08em .12em;
+    margin: 0 -.08em -.12em;
+  }
+  .li__title :global(.li__word) { display: inline-block; will-change: transform; }
+
+  .li__date {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--bone-58);
+    font-size: var(--t-xs);
+    text-transform: uppercase;
+    letter-spacing: .14em;
+  }
+  .li__sep { padding-left: var(--s-4); border-left: 1px solid var(--bone-18); }
+
+  /* --- open ----------------------------------------------------------------- */
+  .li__open {
+    position: relative;
+    margin-top: var(--s-5);
+    display: grid;
+    place-items: center;
+    width: 180px;
+    height: 180px;
+    color: var(--bone);
+    border-radius: 50%;
+    text-decoration: none;
+  }
+  .li__open-label {
+    position: relative;
+    z-index: 1;
+    font-size: var(--t-xxs);
+    font-weight: 600;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    transition: color var(--d-base) var(--e-out);
+  }
+  .li__open-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .li__open-ring circle {
+    fill: rgba(238, 138, 134, 0);
+    stroke: var(--bone-muted);
+    stroke-width: 1;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    vector-effect: non-scaling-stroke;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke var(--d-base) var(--e-out), fill var(--d-slow) var(--e-out);
+  }
+  .li__open:hover .li__open-ring circle,
+  .li__open:focus-visible .li__open-ring circle { stroke: #EE8A86; fill: rgba(238, 138, 134, .14); }
+  .li__open:hover .li__open-label { color: #FBE2D2; }
+
+  /* --- scroll cue, progress, and the handover veil ---------------------------- */
+  .li__foot {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    bottom: var(--s-7);
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: var(--s-3);
+    color: var(--bone-58);
+  }
+  .li__line { display: block; width: 1px; height: 44px; background: var(--bone-18); overflow: hidden; }
+  .li__line i { display: block; width: 100%; height: 100%; background: #EE8A86; transform-origin: 50% 0; }
+
+  .li__progress {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 1px;
+    z-index: 3;
+    background: var(--bone-10);
+  }
+  .li__progress i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(200, 85, 61, .4), #EE8A86);
+    transform: scaleX(var(--p, 0));
+    transform-origin: 0 50%;
+  }
+
+  /* Fades the whole frame to the letter's night at the end of the push. */
+  .li__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    background: #100C10;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 48rem) {
+    .li__type { gap: var(--s-4); padding-inline: var(--s-5); }
+    .li__title { max-width: 12ch; }
+    .li__open { width: 152px; height: 152px; }
+    .li__date { font-size: 10px; gap: var(--s-2); flex-direction: column; }
+    .li__sep { padding-left: 0; border-left: 0; }
+  }
+</style>

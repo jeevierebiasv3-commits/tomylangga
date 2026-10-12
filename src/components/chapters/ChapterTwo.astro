@@ -1,0 +1,246 @@
+---
+/**
+ * Chapter II — You play that too?  (First connection)
+ *
+ * The van to the resort. This is the chapter that rhymes with the prologue,
+ * so it carries the same dusk palette — the reader has been here before,
+ * and now they get the rest of it.
+ *
+ * Ends on the counter, which starts from this exact moment and has been
+ * running ever since.
+ */
+import { BEGAN } from '../../data/milestones.js';
+
+// A build-time day count, so the number is present and sensible before any
+// JavaScript runs. The live counter replaces it on hydration.
+const began = new Date(`${BEGAN}T00:00:00`);
+const daysAtBuild = Math.floor((Date.now() - began.getTime()) / 86400000);
+---
+<section
+  class="ch two"
+  id="chapter-ii"
+  aria-labelledby="ch2-title"
+  data-chapter="ii"
+  data-tone="dark"
+>
+  <!-- Movement 1: the question ------------------------------------------- -->
+  <div class="ch__movement two__open">
+    <div class="frame">
+      <header class="ch__head">
+        <p class="ch__eyebrow">
+          <span class="ch__numeral">II</span>
+          <span>First connection</span>
+        </p>
+        <h2 class="ch__title two__title" id="ch2-title" data-split>
+          You play that too?
+        </h2>
+        <p class="ch__lede two__lede" data-reveal data-delay="0.15">
+          Everyone moved on to a resort to keep the celebration going. She got in
+          the back of the van first.
+        </p>
+      </header>
+    </div>
+  </div>
+
+  <!-- Movement 2: what actually happened ---------------------------------- -->
+  <div class="ch__movement two__read">
+    <div class="frame two__grid">
+      <p class="ch__eyebrow two__marker" data-reveal>
+        <span class="mono">En route &middot; 14.05.22</span>
+      </p>
+
+      <div class="ch__prose" data-reveal data-delay="0.1">
+        <p>
+          Later, everyone decided to head to a nearby resort to keep the celebration
+          going. She was the first to sit in the back of the van. When I climbed in, I
+          slid into the seat beside her and pulled out my phone to play Call of Duty
+          Mobile. After a few minutes she leaned a little closer and said with a smile,
+          <q class="two__q">You play that too? I play CODM as well.</q>
+          That simple question started everything. We talked about the game; favorite
+          maps, funny matches; and soon the conversation moved beyond gaming. The ride
+          to the resort felt short, but it was enough to turn a quiet trip into the
+          beginning of something I&rsquo;ll never forget.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Movement 3: the pull quote ------------------------------------------ -->
+  <div class="ch__movement two__quote-wrap">
+    <div class="frame">
+      <blockquote class="ch__quote two__quote" data-words>
+        From that van ride to the resort, I knew there was something
+        <span class="ch__em">different</span> about you. The way you lit up when we
+        talked about CODM, and how easy our conversation felt, made the whole trip
+        unforgettable.
+        <cite>Jeevie</cite>
+      </blockquote>
+    </div>
+  </div>
+
+  <!-- Movement 4: the counter ---------------------------------------------- -->
+  <div class="ch__movement two__count">
+    <div class="frame">
+      <p class="ch__eyebrow" data-reveal><span>Still counting</span></p>
+
+      <div class="two__odo" data-odometer data-since={BEGAN}>
+        <!-- Replaced by the live odometer. Until then this is the real
+             number, rendered at build time, so nothing is ever blank. -->
+        <p class="two__odo-fallback" data-odo-fallback>
+          <span class="two__odo-big">{daysAtBuild.toLocaleString('en-US')}</span>
+          <span class="two__odo-unit">days</span>
+        </p>
+      </div>
+
+      <p class="two__since" data-reveal>
+        since <time datetime={BEGAN}>May 14, 2022</time> &mdash; and never stopping
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .two {
+    background: var(--ink);
+    color: var(--bone);
+    padding-block: var(--s-7) var(--s-10);
+    /* The dusk gradient from the prologue, carried through so the chapter
+       reads as the same evening. */
+    background-image:
+      radial-gradient(70% 45% at 72% 8%, rgba(200, 85, 61, .20), transparent 68%),
+      radial-gradient(50% 40% at 12% 92%, rgba(61, 79, 92, .34), transparent 70%);
+  }
+
+  .two__title { max-width: 14ch; }
+  .two__lede { max-width: 30rem; margin-top: var(--s-3); }
+
+  /* --- prose -------------------------------------------------------------- */
+  .two__read { padding-top: var(--s-7); }
+
+  .two__grid {
+    display: grid;
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--s-7);
+    align-items: start;
+  }
+  .two__marker { padding-top: .4em; }
+  .two__marker::after { display: none; }
+
+  /* The four words themselves, set apart from the paragraph around them. */
+  .two__q {
+    display: inline;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.22em;
+    color: var(--tungsten);
+    quotes: '\201C' '\201D';
+  }
+
+  /* --- the quote ----------------------------------------------------------- */
+  .two__quote-wrap { padding-block: var(--s-10); }
+  .two__quote {
+    max-width: 26ch;
+    font-size: var(--t-xl);
+    color: var(--bone-95);
+  }
+
+  /* --- the counter ---------------------------------------------------------- */
+  .two__count {
+    padding-top: var(--s-8);
+    border-top: 1px solid var(--bone-10);
+  }
+
+  .two__odo {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--s-5);
+    margin: var(--s-6) 0 var(--s-5);
+  }
+
+  .two__odo-fallback {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-3);
+  }
+  .two__odo-big {
+    font-family: var(--font-mono);
+    font-size: var(--t-xxl);
+    font-weight: 400;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .two__odo-unit {
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--bone-muted);
+  }
+
+  .two__since {
+    font-size: var(--t-sm);
+    color: var(--bone-58);
+  }
+
+  /* --- the live odometer, built by motion/chapters.js ------------------------
+     Global, because the digit columns do not exist at build time. */
+  .two__odo :global(.odo__group) {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--s-2);
+  }
+  .two__odo :global(.odo__digits) {
+    display: flex;
+    font-family: var(--font-mono);
+    font-size: var(--t-xxl);
+    line-height: 1;
+    letter-spacing: -.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .two__odo :global(.odo__col) {
+    position: relative;
+    overflow: hidden;
+    width: .56em;
+    height: 1em;
+  }
+  .two__odo :global(.odo__strip) {
+    position: absolute;
+    inset: 0 0 auto 0;
+    display: grid;
+    will-change: transform;
+  }
+  .two__odo :global(.odo__strip span) {
+    display: grid;
+    place-items: center;
+    height: 1em;
+  }
+  .two__odo :global(.odo__unit) {
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--bone-muted);
+    /* Sits on the digits' baseline rather than floating under their box. */
+    padding-bottom: .12em;
+  }
+  .two__odo :global(.odo__sep) {
+    align-self: flex-end;
+    color: var(--bone-muted);
+    font-family: var(--font-mono);
+    font-size: var(--t-lg);
+    line-height: 1;
+    padding-bottom: .1em;
+  }
+
+  /* --- mobile ---------------------------------------------------------------- */
+  @media (max-width: 64rem) {
+    .two__grid { grid-template-columns: 1fr; gap: var(--s-5); }
+  }
+
+  @media (max-width: 48rem) {
+    .two { padding-block: var(--s-8) var(--s-9); }
+    .two__quote-wrap { padding-block: var(--s-8); }
+    .two__odo { gap: var(--s-4); }
+    .two__odo :global(.odo__digits) { font-size: var(--t-xl); }
+    .two__odo-big { font-size: var(--t-xl); }
+  }
+</style>

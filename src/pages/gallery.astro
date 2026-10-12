@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Chrome from '../components/nav/Chrome.astro';
+import GalleryMasthead from '../components/gallery/GalleryMasthead.astro';
+import Exhibit from '../components/gallery/Exhibit.astro';
+import GalleryOutro from '../components/gallery/GalleryOutro.astro';
+import RoomHud from '../components/gallery/RoomHud.astro';
+import GalleryCurtain from '../components/gallery/GalleryCurtain.astro';
+import Lightbox from '../components/ui/Lightbox.astro';
+import '../styles/chapter.css';
+---
+<Layout
+  title="Frames We Kept — My Langga"
+  description="Every photograph Jeevie and Britney ever took of each other, hung in one room."
+>
+  <Fragment slot="chrome">
+    <Chrome page="gallery" />
+    <Lightbox />
+    <RoomHud />
+    <GalleryCurtain />
+  </Fragment>
+
+  <main id="story">
+    <GalleryMasthead />
+    <Exhibit />
+  </main>
+
+  <GalleryOutro />
+</Layout>
+
+<script>
+  import '../scripts/gallery-page.js';
+</script>

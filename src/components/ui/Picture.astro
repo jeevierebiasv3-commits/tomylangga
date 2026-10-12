@@ -1,0 +1,121 @@
+---
+/**
+ * A photograph from the media manifest.
+ *
+ * Emits AVIF → WebP → JPEG with intrinsic width/height (so nothing ever
+ * shifts) and the 24px LQIP painted behind as a blur-up. The LQIP is a
+ * background on the wrapper rather than a second <img>, so it costs no extra
+ * request and no extra element.
+ *
+ * `media()` throws on an unknown id, which turns a typo into a build failure
+ * instead of a silent hole in a chapter.
+ */
+import { media } from '../../data/media.js';
+
+export interface Props {
+  /** Manifest key, e.g. "moments/pic12". */
+  id: string;
+  /** Required. Describe the moment, not the file. */
+  alt: string;
+  /** Layout hint for the browser. Default assumes a near-full-bleed figure. */
+  sizes?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  class?: string;
+  /** Overrides the manifest ratio when the frame deliberately crops. */
+  ratio?: string;
+  /** object-fit on the image itself. */
+  fit?: 'cover' | 'contain';
+}
+
+const {
+  id,
+  alt,
+  sizes = '(max-width: 48rem) 100vw, 60vw',
+  loading = 'lazy',
+  fetchpriority = 'auto',
+  class: className = '',
+  ratio,
+  fit = 'cover',
+} = Astro.props;
+
+const m = media(id);
+const style = [
+  `--lqip:url(${m.lqip})`,
+  ratio ? `--ratio:${ratio}` : `--ratio:${m.w} / ${m.h}`,
+  `--fit:${fit}`,
+].join(';');
+---
+<div class:list={['pic', className]} style={style} data-pic>
+  <picture>
+    <source type="image/avif" srcset={m.avif} sizes={sizes} />
+    <source type="image/webp" srcset={m.webp} sizes={sizes} />
+    <img
+      src={m.src}
+      width={m.w}
+      height={m.h}
+      alt={alt}
+      sizes={sizes}
+      loading={loading}
+      fetchpriority={fetchpriority}
+      decoding={loading === 'eager' ? 'sync' : 'async'}
+      onload="this.closest('[data-pic]').dataset.loaded='1'"
+    />
+  </picture>
+</div>
+
+<style>
+  .pic {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    background-color: var(--bone-deep);
+    background-image: var(--lqip);
+    background-size: cover;
+    background-position: center;
+    isolation: isolate;
+  }
+
+  /* The LQIP is upscaled from 24px, so it needs blurring to read as a
+     placeholder rather than as mosaic artefacts. */
+  .pic::before {
+    content: '';
+    position: absolute;
+    inset: -4%;
+    background: inherit;
+    background-size: cover;
+    filter: blur(18px) saturate(1.15);
+    transform: scale(1.06);
+    z-index: -1;
+  }
+
+  /* Absolutely positioned rather than relying on height:100% — the global
+     `img { height: auto }` reset otherwise wins and the image sits at its own
+     aspect ratio inside the frame, leaving the blur-up visible around it. */
+  .pic img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: var(--fit);
+    opacity: 0;
+    transition: opacity var(--d-slow) var(--e-out);
+  }
+
+  .pic[data-loaded='1'] img { opacity: 1; }
+
+  /* A cached image can fire load before this script attribute is wired up.
+     Without this, a fast reload would leave the photo invisible. */
+  @media (scripting: none) {
+    .pic img { opacity: 1; }
+  }
+</style>
+
+<script>
+  // Catch images that finished loading before hydration (bfcache, fast reloads).
+  // The inline onload handles the common path; this is the safety net.
+  for (const el of document.querySelectorAll<HTMLElement>('[data-pic]')) {
+    const img = el.querySelector('img');
+    if (img && img.complete && img.naturalWidth > 0) el.dataset.loaded = '1';
+  }
+</script>

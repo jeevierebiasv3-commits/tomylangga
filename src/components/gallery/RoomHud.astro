@@ -1,0 +1,62 @@
+---
+/**
+ * Which plate you are standing at. Fixed, bottom left, only while the room is
+ * on screen. Decorative — the plates carry their own numbers for assistive
+ * tech — so it is hidden from the accessibility tree.
+ */
+import { PLATES } from '../../data/plates.js';
+---
+<div class="hud" data-room-hud aria-hidden="true">
+  <span class="hud__label">Plate</span>
+  <span class="hud__count mono">
+    <span class="hud__win"><span class="hud__num" data-room-hud-num>001</span></span>
+    <span class="hud__of">/ {String(PLATES.length).padStart(3, '0')}</span>
+  </span>
+  <span class="hud__track"><i data-room-hud-bar></i></span>
+</div>
+
+<style>
+  .hud {
+    position: fixed;
+    left: var(--gutter);
+    bottom: var(--s-5);
+    z-index: var(--z-rail);
+    display: grid;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: rgba(244, 239, 232, .72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--ink);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity var(--d-slow) var(--e-out), transform var(--d-slow) var(--e-snap);
+  }
+  .hud[data-on='1'] { opacity: 1; transform: none; }
+
+  .hud__label {
+    font-size: 9px;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .hud__count { display: inline-flex; align-items: baseline; gap: 6px; font-size: var(--t-md); }
+  .hud__win { display: inline-block; overflow: hidden; line-height: 1.1; }
+  .hud__num { display: inline-block; }
+  .hud__of { font-size: var(--t-xxs); color: var(--ink-muted); }
+
+  .hud__track { display: block; width: 100%; height: 1px; background: var(--rule); }
+  .hud__track i {
+    display: block;
+    height: 100%;
+    background: var(--ember);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  @media (max-width: 48rem) {
+    .hud { bottom: var(--s-4); padding: 8px 12px; }
+  }
+</style>

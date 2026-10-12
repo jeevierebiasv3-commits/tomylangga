@@ -1,0 +1,146 @@
+---
+/**
+ * The shared lightbox.
+ *
+ * One instance per page, opened by any element carrying
+ * `data-lightbox-open="<media id>"`. Used by the flower wall and by the
+ * gallery, so the two behave identically.
+ *
+ * It is a modal dialog and is marked up as one: trapped tab order, Escape to
+ * close, focus returned to whatever opened it. The figure is built at runtime
+ * from the media manifest, which is passed in as JSON rather than rendering
+ * 104 hidden <picture> elements into the page.
+ */
+import { MEDIA } from '../../data/media.js';
+
+// Only what the lightbox needs, so this is a few KB rather than the whole
+// manifest with its base64 placeholders.
+const slim = Object.fromEntries(
+  Object.values(MEDIA).map((m) => [
+    m.id,
+    m.kind === 'video'
+      ? { k: 'v', src: m.src, poster: m.poster, w: m.w, h: m.h }
+      : { k: 'i', avif: m.avif, webp: m.webp, src: m.src, w: m.w, h: m.h },
+  ])
+);
+---
+<div class="lb" data-lightbox hidden>
+  <div class="lb__scrim" data-lightbox-close></div>
+
+  <div class="lb__panel" role="dialog" aria-modal="true" aria-label="Photograph viewer" data-tone="dark">
+    <figure class="lb__figure">
+      <div class="lb__stage" data-lightbox-stage></div>
+      <figcaption class="lb__cap">
+        <span class="lb__count mono" data-lightbox-count></span>
+        <span class="lb__note" data-lightbox-note></span>
+      </figcaption>
+    </figure>
+
+    <button class="lb__btn lb__prev" type="button" data-lightbox-prev aria-label="Previous photograph">
+      <span aria-hidden="true">&larr;</span>
+    </button>
+    <button class="lb__btn lb__next" type="button" data-lightbox-next aria-label="Next photograph">
+      <span aria-hidden="true">&rarr;</span>
+    </button>
+    <button class="lb__btn lb__close" type="button" data-lightbox-close aria-label="Close viewer">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+</div>
+
+<script is:inline type="application/json" data-lightbox-manifest set:html={JSON.stringify(slim)} />
+
+<style>
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+  }
+  .lb[hidden] { display: none; }
+
+  .lb__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 8, 7, .88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    opacity: 0;
+  }
+
+  .lb__panel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: clamp(2.5rem, 1rem + 5vw, 5rem);
+  }
+
+  .lb__figure {
+    margin: 0;
+    display: grid;
+    gap: var(--s-4);
+    justify-items: center;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .lb__stage {
+    display: grid;
+    place-items: center;
+    max-height: 78svh;
+    min-height: 40svh;
+  }
+  .lb__stage :global(img),
+  .lb__stage :global(video) {
+    max-width: min(92vw, 70rem);
+    max-height: 78svh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--r-sm);
+    box-shadow: var(--shadow-dark);
+  }
+
+  .lb__cap {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--bone-58);
+    font-size: var(--t-xs);
+    text-align: center;
+  }
+  .lb__count { color: var(--bone-muted); }
+
+  .lb__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(244, 239, 232, .08);
+    border: 1px solid var(--bone-18);
+    color: var(--bone);
+    font-size: 18px;
+    line-height: 1;
+    transition: background-color var(--d-base) var(--e-out),
+                border-color var(--d-base) var(--e-out);
+  }
+  .lb__btn:hover {
+    background: rgba(244, 239, 232, .18);
+    border-color: var(--bone-muted);
+  }
+  .lb__prev  { left: clamp(.75rem, 2vw, 2rem); top: 50%; transform: translateY(-50%); }
+  .lb__next  { right: clamp(.75rem, 2vw, 2rem); top: 50%; transform: translateY(-50%); }
+  .lb__close { top: clamp(.75rem, 2vw, 2rem); right: clamp(.75rem, 2vw, 2rem); }
+
+  @media (max-width: 48rem) {
+    .lb__panel { padding: var(--s-6) var(--s-3) var(--s-8); }
+    .lb__prev  { left: var(--s-3); top: auto; bottom: var(--s-4); transform: none; }
+    .lb__next  { right: var(--s-3); top: auto; bottom: var(--s-4); transform: none; }
+    .lb__stage :global(img),
+    .lb__stage :global(video) { max-height: 64svh; }
+  }
+</style>

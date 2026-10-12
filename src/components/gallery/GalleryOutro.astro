@@ -1,0 +1,77 @@
+---
+/**
+ * The colophon, and the way back.
+ */
+---
+<footer class="go" data-tone="dark">
+  <div class="frame go__inner">
+    <p class="go__end" data-split>End of the room &mdash; and we are still hanging new ones.</p>
+
+    <div class="go__cols">
+      <div>
+        <p class="kicker">Colophon</p>
+        <p class="go__text">
+          Curated, hung, and lit by Jeevie. The room stays open &mdash; new
+          plates go up whenever you look at me a certain way and I happen to
+          have my phone out.
+        </p>
+      </div>
+
+      <div class="go__back">
+        <a class="go__link" href="/" data-magnetic="0.2">
+          Back to our story<span aria-hidden="true"> &#8599;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .go {
+    background: var(--ink);
+    color: var(--bone);
+    padding-block: var(--s-10);
+  }
+  .go__inner { display: grid; gap: var(--s-8); }
+
+  .go__end {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-xl);
+    line-height: 1.15;
+    max-width: 20ch;
+  }
+
+  .go__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--s-7);
+    align-items: end;
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--bone-18);
+  }
+  .go__text {
+    margin-top: var(--s-3);
+    max-width: 44ch;
+    font-size: var(--t-sm);
+    line-height: 1.7;
+    color: var(--bone-58);
+  }
+  .go__link {
+    display: inline-block;
+    padding: 14px 28px;
+    border: 1px solid var(--bone-muted);
+    border-radius: var(--r-pill);
+    color: var(--bone);
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    transition: background-color var(--d-base) var(--e-out), color var(--d-base) var(--e-out);
+  }
+  .go__link:hover { background: var(--bone); color: var(--ink); }
+
+  @media (max-width: 48rem) {
+    .go__cols { grid-template-columns: 1fr; align-items: start; }
+  }
+</style>

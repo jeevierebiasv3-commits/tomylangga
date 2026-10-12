@@ -1,0 +1,381 @@
+---
+/**
+ * The prologue — the van to the resort, 14 May 2022.
+ *
+ * Three layers, in load order:
+ *
+ *   1. `.pro__still`  pure CSS. Paints with the document, before any script.
+ *                     It is a real composition, not a loading state — if JS
+ *                     or WebGL never arrive, this is the prologue.
+ *   2. `<canvas>`     the three.js scene, faded in over the still once its
+ *                     chunk has loaded and drawn a frame.
+ *   3. `.pro__type`   the typography, choreographed against the shader's
+ *                     exposure uniform so the words and the light move together.
+ *
+ * It is a modal gate, so it is marked up as one: role="dialog", aria-modal,
+ * a trapped tab order, and Escape to leave. Skip is visible from the first
+ * frame and never moves.
+ */
+---
+<div
+  id="prologue"
+  class="pro"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="pro-question"
+  data-prologue
+  data-tone="dark"
+>
+  <div class="pro__still" aria-hidden="true"></div>
+  <canvas class="pro__canvas" data-pro-canvas aria-hidden="true"></canvas>
+  <div class="pro__frame" aria-hidden="true"></div>
+
+  <div class="pro__type">
+    <p class="pro__kicker kicker" data-pro-kicker>Jeevie made this for you</p>
+
+    <p class="pro__lead" data-pro-lead>It all started with one question &mdash;</p>
+
+    <h1 class="pro__question" id="pro-question" data-pro-question>
+      &ldquo;You play that too?&rdquo;
+    </h1>
+
+    <p class="pro__date mono" data-pro-date>
+      <time datetime="2022-05-14">14 &middot; 05 &middot; 2022</time>
+      <span class="pro__place">Balamban &rarr; Toledo, Cebu</span>
+    </p>
+
+    <button class="pro__enter" type="button" data-pro-enter data-magnetic="0.22">
+      <span class="pro__enter-label">Enter our story</span>
+      <svg class="pro__enter-ring" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+        <circle cx="60" cy="60" r="58" pathLength="1" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="pro__controls">
+    <button class="pro__ctl" type="button" data-sound-toggle hidden aria-pressed="false">
+      <span class="pro__ctl-dot" aria-hidden="true"></span>
+      <span data-sound-label>Sound off</span>
+    </button>
+    <button class="pro__ctl" type="button" data-pro-skip>
+      Skip intro
+      <span class="pro__ctl-key" aria-hidden="true">esc</span>
+    </button>
+  </div>
+
+  <div class="pro__progress" data-pro-progress aria-hidden="true"><i></i></div>
+</div>
+
+{/*
+  Lock scrolling the instant the markup exists, and get out of the way
+  entirely for anyone who has already been through the prologue this session.
+  Inline so it runs before the page can be scrolled.
+*/}
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    if (root.dataset.entered === '1') {
+      var el = document.getElementById('prologue');
+      if (el) el.remove();
+    } else {
+      document.body.dataset.locked = '';
+    }
+  })();
+</script>
+
+<style>
+  .pro {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-prologue);
+    overflow: hidden;
+    background: #0B0E12;
+    color: var(--bone);
+    isolation: isolate;
+  }
+
+  /* --- layer 1: the CSS composition ------------------------------------- */
+  /* Dusk over the hills out of Balamban, built from gradients so it paints
+     with the document. The shader fades in on top of this, matched closely
+     enough that the handover is not visible. */
+  .pro__still {
+    position: absolute;
+    inset: 0;
+    background:
+      /* the phone glow, low right */
+      radial-gradient(42% 30% at 69% 86%, rgba(245, 158, 84, .22), transparent 70%),
+      /* the sun already under the ridge */
+      radial-gradient(38% 22% at 66% 55%, rgba(250, 138, 69, .55), transparent 72%),
+      /* ground */
+      linear-gradient(to bottom, transparent 0 74%, #0B0A0C 76%, #090809 100%),
+      /* sky */
+      linear-gradient(to bottom,
+        #11131B 0%,
+        #1B2230 26%,
+        #3B4A59 48%,
+        #8A5E46 62%,
+        #D9793F 70%,
+        #2A2220 76%);
+    transition: opacity 1.2s var(--e-soft);
+  }
+  /* Once the scene has drawn, the still is redundant. */
+  .pro[data-scene='on'] .pro__still { opacity: 0; }
+
+  .pro__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.2s var(--e-soft);
+  }
+  .pro[data-scene='on'] .pro__canvas { opacity: 1; }
+
+  /* The van window, drawn over the CSS still only. The shader cuts its own
+     frame, so this is hidden once the scene is live. */
+  .pro__frame {
+    position: absolute;
+    inset: 0;
+    background: #06070A;
+    -webkit-mask:
+      radial-gradient(130% 100% at 50% 50%, #000 0 55%, transparent 72%) exclude,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    opacity: .9;
+    transition: opacity 1s var(--e-soft);
+  }
+  .pro[data-scene='on'] .pro__frame { opacity: 0; }
+
+  /* --- layer 3: the typography -------------------------------------------- */
+  /* A soft scrim under the typography. The horizon is the brightest part of
+     the scene and the type sits right on it; without this the middle of the
+     question loses contrast against the sun. */
+  .pro__type::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(58% 42% at 50% 46%, rgba(10, 8, 12, .52), transparent 72%);
+    pointer-events: none;
+  }
+
+  .pro__type {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-5);
+    text-align: center;
+    padding: var(--s-9) var(--gutter);
+    text-shadow: 0 2px 40px rgba(6, 7, 10, .55);
+  }
+
+  .pro__kicker {
+    color: var(--bone-58);
+    margin-bottom: var(--s-4);
+  }
+
+  .pro__lead {
+    font-family: var(--font-serif);
+    font-weight: var(--w-serif);
+    font-size: var(--t-md);
+    line-height: 1.3;
+    color: var(--bone-78);
+    letter-spacing: .01em;
+  }
+
+  .pro__question {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: var(--t-mega);
+    line-height: var(--lh-tight);
+    letter-spacing: -.02em;
+    color: #F9E3D2;
+    max-width: 18ch;
+    text-wrap: balance;
+    /* line-height below 1 clips the italic's descenders into the next line. */
+    padding-bottom: .12em;
+    margin-bottom: var(--s-3);
+  }
+
+  /* The word masks are created at runtime by motion/prologue.js, so they need
+     to be global — Astro's scoping only reaches markup present at build. */
+  .pro__question :global(.pro__mask) {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    /* Descenders and the italic's overhang get clipped by a tight mask. */
+    padding: 0 .08em .12em;
+    margin: 0 -.08em -.12em;
+  }
+  .pro__question :global(.pro__word) {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  .pro__date {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    flex-wrap: wrap;
+    justify-content: center;
+    color: var(--bone-58);
+    font-size: var(--t-xs);
+  }
+  .pro__place {
+    padding-left: var(--s-4);
+    border-left: 1px solid var(--bone-18);
+  }
+
+  /* --- enter ---------------------------------------------------------------- */
+  .pro__enter {
+    position: relative;
+    margin-top: var(--s-5);
+    display: grid;
+    place-items: center;
+    width: 180px;
+    height: 180px;
+    background: none;
+    border: 0;
+    color: var(--bone);
+    border-radius: 50%;
+  }
+
+  .pro__enter-label {
+    position: relative;
+    z-index: 1;
+    font-size: var(--t-xxs);
+    font-weight: 600;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    transition: color var(--d-base) var(--e-out);
+  }
+
+  .pro__enter-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .pro__enter-ring circle {
+    fill: rgba(200, 85, 61, 0);
+    stroke: var(--bone-muted);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke var(--d-base) var(--e-out), fill var(--d-slow) var(--e-out);
+  }
+  .pro__enter:hover .pro__enter-ring circle,
+  .pro__enter:focus-visible .pro__enter-ring circle {
+    stroke: #F0A07E;
+    fill: rgba(200, 85, 61, .14);
+  }
+  .pro__enter:hover .pro__enter-label { color: #FBE2D2; }
+
+  /* --- controls -------------------------------------------------------------- */
+  .pro__controls {
+    position: absolute;
+    z-index: 3;
+    right: var(--gutter);
+    top: var(--gutter);
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+  }
+
+  .pro__ctl {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 10px 16px;
+    background: rgba(10, 12, 16, .42);
+    border: 1px solid var(--bone-18);
+    border-radius: var(--r-pill);
+    color: var(--bone-78);
+    font-size: var(--t-xxs);
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: color var(--d-base) var(--e-out),
+                border-color var(--d-base) var(--e-out),
+                background-color var(--d-base) var(--e-out);
+  }
+  .pro__ctl:hover {
+    color: var(--bone);
+    border-color: var(--bone-muted);
+    background: rgba(10, 12, 16, .66);
+  }
+
+  .pro__ctl-key {
+    padding: 2px 6px;
+    border: 1px solid var(--bone-18);
+    border-radius: 4px;
+    font-size: 9px;
+    letter-spacing: .08em;
+    opacity: .72;
+  }
+
+  .pro__ctl-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--bone-muted);
+    transition: background-color var(--d-base) var(--e-out),
+                box-shadow var(--d-base) var(--e-out);
+  }
+  .pro__ctl[aria-pressed='true'] .pro__ctl-dot {
+    background: var(--tungsten);
+    box-shadow: 0 0 0 3px rgba(232, 176, 122, .22);
+  }
+
+  /* --- loading hairline -------------------------------------------------------- */
+  .pro__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--bone-10);
+    z-index: 3;
+  }
+  .pro__progress i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, rgba(200, 85, 61, .4), #E8B07A);
+    transition: width .5s var(--e-out), opacity .6s var(--e-out) .2s;
+  }
+  .pro[data-scene='on'] .pro__progress i,
+  .pro[data-ready='1'] .pro__progress i { width: 100%; opacity: 0; }
+
+  /* --- mobile ------------------------------------------------------------------- */
+  @media (max-width: 48rem) {
+    .pro__type { gap: var(--s-4); padding-inline: var(--s-5); }
+    .pro__question { max-width: 14ch; }
+    .pro__controls {
+      top: auto;
+      bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+      left: var(--gutter);
+      right: var(--gutter);
+      justify-content: space-between;
+    }
+    .pro__enter { width: 152px; height: 152px; }
+    .pro__date { font-size: 10px; gap: var(--s-3); }
+    .pro__place { padding-left: var(--s-3); }
+  }
+
+  /* --- reduced motion -------------------------------------------------------------
+     No WebGL, no choreography. The CSS composition and the full text are simply
+     present and correct from the first frame. */
+  :global(html[data-motion='reduced']) .pro__still { opacity: 1 !important; }
+  :global(html[data-motion='reduced']) .pro__canvas { display: none; }
+  :global(html[data-motion='reduced']) .pro__progress { display: none; }
+</style>

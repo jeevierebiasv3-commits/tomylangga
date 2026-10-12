@@ -1,0 +1,145 @@
+---
+/**
+ * The doors to the room.
+ *
+ * Browsers refuse to start music before a visitor has clicked, tapped or
+ * pressed a key — and a scroll does not count — so the gallery opens behind a
+ * short loader that ends on one deliberate click. That click is what lets the
+ * soundtrack start. If the browser already allows sound (or the visitor muted
+ * it earlier this visit), the doors open on their own once the room has loaded.
+ *
+ * Driven by motion/curtain.js. Only drawn with motion resolved, so a page
+ * whose scripts fail never ends up locked behind it.
+ */
+import { PLATES } from '../../data/plates.js';
+---
+<div class="cur" data-curtain role="dialog" aria-modal="true" aria-labelledby="cur-title">
+  <div class="cur__inner" data-curtain-inner>
+    <p class="cur__eyebrow">An exhibition in {PLATES.length} plates</p>
+    <p class="cur__title" id="cur-title">Frames we kept</p>
+
+    <div class="cur__load" data-curtain-load aria-hidden="true">
+      <span class="cur__pct mono"><span data-curtain-pct>000</span></span>
+      <span class="cur__bar"><i data-curtain-bar></i></span>
+    </div>
+
+    <button class="cur__enter" type="button" data-curtain-enter data-magnetic="0.22" hidden>
+      <span class="cur__enter-label">Enter the room</span>
+      <span class="cur__enter-sub">with sound</span>
+      <svg class="cur__enter-ring" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+        <circle cx="60" cy="60" r="59" />
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style>
+  .cur {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-prologue);
+    display: none;
+    place-items: center;
+    background: var(--ink);
+    color: var(--bone);
+    text-align: center;
+  }
+  :global(html[data-motion='full']) .cur { display: grid; }
+  .cur[data-gone='1'] { display: none !important; }
+
+  .cur__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-5);
+    padding-inline: var(--gutter);
+  }
+
+  .cur__eyebrow {
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--bone-58);
+  }
+
+  .cur__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: clamp(3rem, 1.5rem + 7vw, 8rem);
+    line-height: .95;
+    letter-spacing: -.035em;
+  }
+
+  .cur__load {
+    display: grid;
+    justify-items: center;
+    gap: var(--s-3);
+    width: min(16rem, 60vw);
+  }
+  .cur__pct { font-size: var(--t-md); color: var(--tungsten); }
+  .cur__bar { display: block; width: 100%; height: 1px; background: var(--bone-18); }
+  .cur__bar i {
+    display: block;
+    height: 100%;
+    background: var(--ember);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  /* --- enter (the prologue's button, so the two doors match) ---------------- */
+  .cur__enter {
+    position: relative;
+    display: grid;
+    place-content: center;
+    gap: 4px;
+    width: 180px;
+    height: 180px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    color: var(--bone);
+    cursor: pointer;
+  }
+  .cur__enter[hidden] { display: none; }
+  .cur__enter-label {
+    position: relative;
+    z-index: 1;
+    font-size: var(--t-xxs);
+    font-weight: 600;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    transition: color var(--d-base) var(--e-out);
+  }
+  .cur__enter-sub {
+    position: relative;
+    z-index: 1;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: var(--t-sm);
+    color: var(--bone-58);
+  }
+  .cur__enter-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .cur__enter-ring circle {
+    fill: rgba(200, 85, 61, 0);
+    stroke: var(--bone-muted);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke var(--d-base) var(--e-out), fill var(--d-slow) var(--e-out);
+  }
+  .cur__enter:hover .cur__enter-ring circle,
+  .cur__enter:focus-visible .cur__enter-ring circle {
+    stroke: #F0A07E;
+    fill: rgba(200, 85, 61, .14);
+  }
+  .cur__enter:hover .cur__enter-label { color: #FBE2D2; }
+  .cur__enter:focus-visible { outline: 2px solid var(--tungsten); outline-offset: 6px; }
+</style>

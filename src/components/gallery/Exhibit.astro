@@ -1,0 +1,172 @@
+---
+/**
+ * The room — all 104 plates, hung.
+ *
+ * One scattered 12-column grid. Each plate is a button that opens the shared
+ * lightbox, so the whole room is keyboard-operable and pages with the arrow
+ * keys once open.
+ *
+ * Alt text is derived from each plate's place and note rather than written
+ * one by one. For an exhibition of a hundred frames of the same two people
+ * that is the honest description — a fabricated per-photo caption would be
+ * worse than a truthful group one.
+ */
+import Picture from '../ui/Picture.astro';
+import Clip from '../ui/Clip.astro';
+import { PLATES } from '../../data/plates.js';
+
+const rows = Math.max(...PLATES.map(p => p.row));
+---
+<section class="ex" aria-labelledby="ex-title" data-lightbox-group>
+  <h2 class="sr-only" id="ex-title">The exhibition — {PLATES.length} plates</h2>
+
+  <ol class="ex__grid" style={`--rows:${rows}`}>
+    {PLATES.map((p, i) => (
+      <li
+        class="ex__cell"
+        style={`--col:${p.col}; --span:${p.span}; --off:${p.off}px; --ratio:${p.ratio}`}
+      >
+        <button
+          class="ex__plate"
+          type="button"
+          data-plate
+          data-lightbox-open={p.media}
+          data-lightbox-note={`${p.title} · ${p.place}`}
+          aria-label={`Open plate ${i + 1} of ${PLATES.length}: ${p.title}, ${p.place}`}
+        >
+          {p.kind === 'video' ? (
+            <Clip
+              id={p.media}
+              alt={`${p.note} ${p.place}.`}
+              posterOnly
+              loading={i < 6 ? 'eager' : 'lazy'}
+              ratio={p.ratio}
+            />
+          ) : (
+            <Picture
+              id={p.media}
+              alt={`${p.note} ${p.place}.`}
+              sizes="(max-width: 48rem) 48vw, 32vw"
+              loading={i < 6 ? 'eager' : 'lazy'}
+              fetchpriority={i < 2 ? 'high' : 'auto'}
+              ratio={p.ratio}
+            />
+          )}
+
+          <span class="ex__tag" aria-hidden="true">
+            <span class="mono">{String(i + 1).padStart(3, '0')}</span>
+            {p.kind === 'video' && <span class="ex__kind">clip</span>}
+          </span>
+        </button>
+      </li>
+    ))}
+  </ol>
+</section>
+
+<style>
+  .ex {
+    padding: var(--s-9) var(--gutter) var(--s-10);
+    background: var(--bone);
+  }
+
+  .ex__grid {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 96rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(1rem, 0.4rem + 2vw, 3.5rem) clamp(.75rem, 0.3rem + 1.4vw, 2rem);
+    align-items: start;
+  }
+
+  .ex__cell {
+    grid-column: var(--col) / span var(--span);
+    /* The per-plate vertical offset is what makes the room scattered rather
+       than a contact sheet. */
+    margin-top: var(--off);
+  }
+
+  .ex__plate {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+    transition: transform var(--d-base) var(--e-snap),
+                box-shadow var(--d-base) var(--e-out);
+  }
+  .ex__plate:hover,
+  .ex__plate:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+  .ex__plate:focus-visible { outline: 2px solid var(--ember); outline-offset: 4px; }
+
+  .ex__tag {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: var(--r-pill);
+    background: rgba(12, 10, 9, .55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: rgba(244, 239, 232, .9);
+    font-size: 9px;
+    letter-spacing: .16em;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity var(--d-base) var(--e-out), transform var(--d-base) var(--e-snap);
+  }
+  .ex__plate:hover .ex__tag,
+  .ex__plate:focus-visible .ex__tag { opacity: 1; transform: none; }
+
+  .ex__kind {
+    text-transform: uppercase;
+    color: var(--tungsten);
+  }
+
+  /* --- media under motion ---------------------------------------------------
+     motion/room.js drives the reveal inline (clip-path on the frame, scale on
+     the image). Live clips are appended by script, hence :global. */
+  .ex :global(.pic img),
+  .ex :global(.clip img) { will-change: transform; }
+
+  .ex :global(.clip video) {
+    opacity: 0;
+    transition: opacity var(--d-slow) var(--e-out);
+  }
+  .ex :global(.clip[data-playing='1'] video) { opacity: 1; }
+
+  /* --- WebGL lens -------------------------------------------------------------
+     Once three/roomLens.js has mounted, the canvas behind the page paints the
+     plates. The DOM frames stay exactly where they are — they set the layout,
+     take the clicks and carry the alt text — but go see-through so the canvas
+     shows. The room's own paper moves onto the canvas for the same reason. */
+  :global(html[data-room-gl='1']) .ex { background: transparent; }
+  :global(html[data-room-gl='1']) .ex :global(.pic),
+  :global(html[data-room-gl='1']) .ex :global(.clip) { background: none; }
+  :global(html[data-room-gl='1']) .ex :global(.pic::before) { display: none; }
+  :global(html[data-room-gl='1']) .ex :global(.pic img),
+  :global(html[data-room-gl='1']) .ex :global(.clip img),
+  :global(html[data-room-gl='1']) .ex :global(.clip video) { opacity: 0 !important; }
+  /* The canvas carries the zoom; a CSS lift would double it. */
+  :global(html[data-room-gl='1']) .ex__plate:hover { box-shadow: none; }
+
+  /* --- mobile --------------------------------------------------------------
+     The scattered 12-column composition collapses into two honest columns;
+     at phone width the offsets just make a mess. */
+  @media (max-width: 48rem) {
+    .ex { padding-top: var(--s-7); }
+    .ex__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-4); }
+    .ex__cell { grid-column: auto / span 1; margin-top: 0; }
+  }
+</style>

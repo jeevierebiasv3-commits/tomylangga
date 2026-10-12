@@ -1,0 +1,462 @@
+---
+/**
+ * The quiet navigation: a mark, an index button, a chapter rail, and the
+ * full-screen index overlay they open.
+ *
+ * Everything here is a real link to a real section id, so the whole thing
+ * works with JavaScript disabled and reads correctly to a screen reader. The
+ * rail is decorative-looking but is a genuine <nav> — the labels are always
+ * in the accessibility tree, only visually collapsed.
+ *
+ * Lives in the Layout's "chrome" slot, outside #smooth-wrapper, because
+ * ScrollSmoother transforms its content and would drag any fixed element
+ * along with it.
+ */
+import { CHAPTERS } from '../../data/chapters.js';
+import { MILESTONES } from '../../data/milestones.js';
+
+export interface Props {
+  /** Marks the gallery link as current when rendered on the gallery page. */
+  page?: 'story' | 'gallery';
+}
+const { page = 'story' } = Astro.props;
+---
+<header class="mast" data-mast>
+  <a class="mast__brand" href="/" data-magnetic="0.18">
+    <span class="mast__dot" aria-hidden="true"></span>
+    <span class="mast__name">langga</span>
+  </a>
+
+  <div class="mast__right">
+    <button class="mast__link mast__sound" type="button" data-sound-toggle hidden aria-pressed="false">
+      <span data-sound-label>Sound off</span>
+    </button>
+    <a
+      class="mast__link"
+      href="/gallery"
+      aria-current={page === 'gallery' ? 'page' : undefined}
+    >Gallery<span aria-hidden="true"> ↗</span></a>
+
+    <button
+      class="mast__index"
+      type="button"
+      data-index-open
+      aria-expanded="false"
+      aria-controls="chapter-index"
+    >
+      <span class="mast__index-label">Index</span>
+      <span class="mast__index-bars" aria-hidden="true"><i></i><i></i></span>
+    </button>
+  </div>
+</header>
+
+{page === 'story' && (
+  <nav class="rail" aria-label="Chapters" data-rail>
+    <ol class="rail__list">
+      {CHAPTERS.map((c) => (
+        <li class="rail__item">
+          <a class="rail__link" href={`#${c.id}`} data-rail-link={c.id}>
+            <span class="rail__tick" aria-hidden="true"></span>
+            <span class="rail__label">
+              <span class="rail__numeral" aria-hidden="true">{c.numeral}</span>
+              {c.label}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
+
+<!-- Reading progress. On mobile this is the only always-visible wayfinding. -->
+<div class="progress" aria-hidden="true"><i data-progress></i></div>
+
+<div class="index" id="chapter-index" data-index hidden>
+  <div class="index__scrim" data-index-close></div>
+
+  <div class="index__panel" role="dialog" aria-modal="true" aria-labelledby="index-title" data-tone="dark">
+    <div class="index__head">
+      <h2 class="index__title" id="index-title">The story, in order</h2>
+      <button class="index__close" type="button" data-index-close aria-label="Close the index">
+        <span aria-hidden="true">Close</span>
+        <span class="index__key" aria-hidden="true">esc</span>
+      </button>
+    </div>
+
+    <div class="index__body">
+      <ol class="index__chapters">
+        {CHAPTERS.map((c) => (
+          <li>
+            <a class="index__chapter" href={`#${c.id}`} data-index-link>
+              <span class="index__numeral" aria-hidden="true">{c.numeral}</span>
+              <span class="index__text">
+                <span class="index__label">{c.label}</span>
+                <span class="index__note">{c.note}</span>
+              </span>
+              <span class="index__arrow" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+
+      <div class="index__places">
+        <p class="kicker">Everywhere it happened</p>
+        <ul class="index__place-list" role="list">
+          {MILESTONES.map((m) => (
+            <li class="index__place">
+              <span class="index__place-name">{m.place}</span>
+              <span class="index__place-meta mono">{m.dateLabel ?? m.coords}</span>
+            </li>
+          ))}
+        </ul>
+        <a class="index__gallery" href="/gallery">
+          All 104 frames<span aria-hidden="true"> ↗</span>
+        </a>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* --- masthead ------------------------------------------------------------ */
+  .mast {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: var(--z-nav);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--s-5) var(--gutter);
+    pointer-events: none;
+    color: var(--ink);
+    transition: transform var(--d-slow) var(--e-out),
+                color var(--d-base) var(--e-out);
+  }
+  .mast > * { pointer-events: auto; }
+  .mast a, .mast button { color: inherit; }
+
+  /* Over the dark chapters, and over full-bleed photography, the mark flips.
+     motion/chrome.js sets this from the same observer that drives the rail. */
+  .mast[data-on-dark='1'] { color: var(--bone); }
+
+  /* Tuck away while scrolling down, return on the way up. */
+  .mast[data-hidden='1'] { transform: translateY(-120%); }
+
+  .mast__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    font-size: var(--t-sm);
+    font-weight: 600;
+    letter-spacing: var(--ls-tight);
+  }
+  .mast__dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--ember);
+    box-shadow: 0 0 0 4px rgba(200, 85, 61, .18);
+  }
+
+  .mast__right {
+    display: flex;
+    align-items: center;
+    gap: var(--s-5);
+  }
+
+  .mast__link {
+    font-size: var(--t-xxs);
+    font-weight: 500;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    opacity: .72;
+    transition: opacity var(--d-base) var(--e-out);
+  }
+  .mast__link:hover,
+  .mast__link[aria-current='page'] { opacity: 1; }
+  .mast__sound { background: none; border: 0; padding: 0; }
+
+  .mast__index {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-3);
+    background: none;
+    border: 0;
+    padding: var(--s-2) 0;
+    font-size: var(--t-xxs);
+    font-weight: 500;
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+  }
+  .mast__index-bars {
+    display: grid;
+    gap: 4px;
+    width: 22px;
+  }
+  .mast__index-bars i {
+    display: block;
+    height: 1px;
+    background: currentColor;
+    transition: transform var(--d-base) var(--e-snap);
+  }
+  .mast__index:hover .mast__index-bars i:first-child { transform: translateX(-4px); }
+  .mast__index:hover .mast__index-bars i:last-child  { transform: translateX(4px); }
+
+  /* --- chapter rail --------------------------------------------------------- */
+  .rail {
+    position: fixed;
+    right: var(--gutter);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: var(--z-rail);
+  }
+  .rail__list {
+    list-style: none;
+    margin: 0; padding: 0;
+    display: grid;
+    gap: var(--s-4);
+  }
+  .rail__link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--s-3);
+    padding: 3px 0;
+  }
+  .rail__tick {
+    display: block;
+    width: 18px;
+    height: 1px;
+    background: var(--ink-24);
+    transition: width var(--d-base) var(--e-snap),
+                background-color var(--d-base) var(--e-out);
+  }
+  .rail__link:hover .rail__tick,
+  .rail__link:focus-visible .rail__tick { width: 34px; background: var(--ink-64); }
+
+  .rail__link[aria-current='true'] .rail__tick {
+    width: 42px;
+    background: var(--ember);
+  }
+
+  .rail__label {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s-2);
+    font-size: var(--t-xxs);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-64);
+    white-space: nowrap;
+    /* Collapsed visually, never removed from the accessibility tree. */
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity var(--d-base) var(--e-out), transform var(--d-base) var(--e-snap);
+  }
+  .rail__numeral {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-muted);
+  }
+  .rail__link:hover .rail__label,
+  .rail__link:focus-visible .rail__label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .rail__link[aria-current='true'] .rail__label { color: var(--ink); }
+
+  /* A backdrop only while the label is actually up, so it stays readable
+     when it happens to sit over a photograph or a column of text. */
+  .rail__label {
+    padding: 4px 10px;
+    margin: -4px -10px;
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--page) 86%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Over the dark chapters the rail inverts. */
+  .rail[data-on-dark='1'] .rail__tick { background: var(--bone-muted); }
+  .rail[data-on-dark='1'] .rail__label { color: var(--bone-78); }
+  .rail[data-on-dark='1'] .rail__numeral { color: var(--bone-muted); }
+  .rail[data-on-dark='1'] .rail__link[aria-current='true'] .rail__label { color: var(--bone); }
+
+  /* --- reading progress ------------------------------------------------------ */
+  .progress {
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 2px;
+    z-index: var(--z-nav);
+    background: transparent;
+    pointer-events: none;
+  }
+  .progress i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--ember);
+    transform-origin: 0 50%;
+  }
+
+  /* --- index overlay ---------------------------------------------------------- */
+  .index {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+  }
+  .index[hidden] { display: none; }
+
+  .index__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(12, 10, 9, .62);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    opacity: 0;
+  }
+
+  .index__panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-6) var(--gutter) var(--s-7);
+    background: var(--ink);
+    color: var(--bone);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .index__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s-5);
+    padding-bottom: var(--s-6);
+    border-bottom: 1px solid var(--bone-18);
+  }
+  .index__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-lg);
+    color: var(--bone-78);
+  }
+  .index__close {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    background: none;
+    border: 0;
+    color: var(--bone-58);
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    transition: color var(--d-base) var(--e-out);
+  }
+  .index__close:hover { color: var(--bone); }
+  .index__key {
+    padding: 2px 6px;
+    border: 1px solid var(--bone-18);
+    border-radius: 4px;
+    font-size: 9px;
+  }
+
+  .index__body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: var(--s-8);
+    align-content: center;
+    padding-block: var(--s-7);
+  }
+
+  .index__chapters {
+    list-style: none;
+    margin: 0; padding: 0;
+  }
+  .index__chapter {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items: baseline;
+    gap: var(--s-4);
+    padding: var(--s-4) 0;
+    border-bottom: 1px solid var(--bone-10);
+  }
+  .index__numeral {
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    color: var(--bone-muted);
+  }
+  .index__text { display: grid; gap: 2px; }
+  .index__label {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-serif);
+    font-size: var(--t-lg);
+    line-height: 1.1;
+    transition: color var(--d-base) var(--e-out);
+  }
+  .index__note {
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--bone-muted);
+  }
+  .index__arrow {
+    color: var(--bone-muted);
+    transform: translateX(-8px);
+    opacity: 0;
+    transition: transform var(--d-base) var(--e-snap), opacity var(--d-base) var(--e-out);
+  }
+  .index__chapter:hover .index__arrow,
+  .index__chapter:focus-visible .index__arrow { opacity: 1; transform: translateX(0); }
+  .index__chapter:hover .index__label { color: var(--tungsten); }
+
+  .index__places { align-self: start; }
+  .index__place-list {
+    margin: var(--s-4) 0 var(--s-6);
+    display: grid;
+    gap: var(--s-3);
+  }
+  .index__place {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s-4);
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--bone-10);
+    font-size: var(--t-sm);
+    color: var(--bone-78);
+  }
+  .index__place-meta { color: var(--bone-muted); font-size: 10px; }
+
+  .index__gallery {
+    display: inline-block;
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--tungsten);
+  }
+
+  /* --- mobile ------------------------------------------------------------------ */
+  @media (max-width: 64rem) {
+    /* The rail needs hover to be legible, so on touch the progress bar and the
+       index button carry wayfinding instead. */
+    .rail { display: none; }
+  }
+
+  @media (max-width: 48rem) {
+    .mast { padding: var(--s-4) var(--gutter); }
+    .mast__right { gap: var(--s-4); }
+    .mast__index-label { display: none; }
+    .index__panel { padding-top: var(--s-5); }
+    .index__body {
+      grid-template-columns: 1fr;
+      gap: var(--s-6);
+      align-content: start;
+    }
+    .index__chapter { grid-template-columns: 2.5rem 1fr auto; padding: var(--s-3) 0; }
+    .index__label { font-size: var(--t-md); }
+  }
+</style>

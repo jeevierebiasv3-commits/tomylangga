@@ -1,0 +1,40 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Chrome from '../components/nav/Chrome.astro';
+import Prologue from '../components/prologue/Prologue.astro';
+import ChapterOne from '../components/chapters/ChapterOne.astro';
+import ChapterTwo from '../components/chapters/ChapterTwo.astro';
+import ChapterThree from '../components/chapters/ChapterThree.astro';
+import MemoryMap from '../components/MemoryMap.astro';
+import ChapterFour from '../components/chapters/ChapterFour.astro';
+import LetterIntro from '../components/LetterIntro.astro';
+import Message from '../components/Message.astro';
+import ChapterFive from '../components/chapters/ChapterFive.astro';
+import Footer from '../components/Footer.astro';
+import Lightbox from '../components/ui/Lightbox.astro';
+import '../styles/chapter.css';
+---
+<Layout>
+  <Fragment slot="chrome">
+    <Prologue />
+    <Chrome page="story" />
+    <Lightbox />
+  </Fragment>
+
+  <main id="story">
+    <ChapterOne />
+    <ChapterTwo />
+    <ChapterThree />
+    <MemoryMap />
+    <ChapterFour />
+    <LetterIntro />
+    <Message />
+    <ChapterFive />
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  import '../scripts/story.js';
+</script>

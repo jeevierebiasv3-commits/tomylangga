@@ -1,0 +1,202 @@
+/* ============================================================================
+   Langga — design tokens
+   ----------------------------------------------------------------------------
+   One source of truth for colour, type, space, motion and layering.
+   The palette is drawn from the three real light environments in the photos:
+   the parish at midday (bone + gold), the van at dusk (slate + tungsten ember),
+   the flower date (sage + dusty rose).
+
+   Nothing in this file should ever be a one-off. If a value is used once,
+   it belongs in the component, not here.
+   ========================================================================= */
+
+:root {
+  /* --- core palette ------------------------------------------------------ */
+  --ink:        #14110F;   /* warm near-black — the dark cinematic chapters   */
+  --ink-soft:   #2A2521;   /* raised surfaces on dark                         */
+  --bone:       #F4EFE8;   /* warm paper — the daylight chapters              */
+  --bone-warm:  #FAF6F0;   /* lifted paper, cards                             */
+  --bone-deep:  #E7DFD4;   /* recessed paper, hairlines on light              */
+
+  --ember:      #C8553D;   /* terracotta — dusk through the van glass         */
+  --ember-lift: #D9694F;   /* hover / active ember                            */
+  --ember-deep: #A3402B;   /* ember that must pass AA on bone (body-size)     */
+
+  --dusk:       #3D4F5C;   /* deep slate — the evening road, the ice rink     */
+  --dusk-deep:  #26333C;   /* the van interior                                */
+  --bloom:      #D9A5A0;   /* dusty rose — the flower date                    */
+  --sage:       #7E9490;   /* the flower-date teal, kept as a trace           */
+  --tungsten:   #E8B07A;   /* the phone glow in the dark                      */
+
+  /* --- ink on light (alpha ramp) ----------------------------------------- */
+  --ink-95: rgba(20, 17, 15, .95);
+  --ink-80: rgba(20, 17, 15, .80);
+  --ink-64: rgba(20, 17, 15, .64);   /* secondary body        — 5.3:1 on bone */
+  /* The lightest ink that still clears 4.5:1 on bone is .59, so this is the
+     floor for any text. Anything fainter is decoration, not writing. */
+  --ink-muted: rgba(20, 17, 15, .62); /* meta / captions      — 4.9:1 on bone */
+  --ink-46: rgba(20, 17, 15, .46);   /* DECORATION ONLY — 3.0:1, fails as text */
+  --ink-24: rgba(20, 17, 15, .24);
+  --ink-12: rgba(20, 17, 15, .12);   /* borders                               */
+  --ink-06: rgba(20, 17, 15, .06);   /* hairlines, fills                      */
+
+  /* --- bone on dark (alpha ramp) ----------------------------------------- */
+  --bone-95: rgba(244, 239, 232, .95);
+  --bone-78: rgba(244, 239, 232, .78);
+  --bone-58: rgba(244, 239, 232, .58); /* secondary body      — 5.6:1 on ink  */
+  /* .48 is the floor for 4.5:1 on ink; .52 leaves a little headroom. */
+  --bone-muted: rgba(244, 239, 232, .52); /* meta / captions  — 5.1:1 on ink  */
+  --bone-38: rgba(244, 239, 232, .38); /* DECORATION ONLY — 3.1:1 as text     */
+  --bone-18: rgba(244, 239, 232, .18);
+  --bone-10: rgba(244, 239, 232, .10);
+
+  /* --- semantic surfaces -------------------------------------------------- */
+  --page:       var(--bone);
+  --page-text:  var(--ink);
+  --rule:       var(--ink-12);
+  --focus:      var(--ember);
+  /* Ember is 3.8:1 on bone — fine for display sizes, short of AA for the
+     small uppercase meta it is mostly used on. This resolves to a darker
+     ember on paper and to tungsten on ink, so small accent text always
+     clears 4.5:1 whichever tone it lands in. */
+  --ember-text: var(--ember-deep);
+
+  /* --- type --------------------------------------------------------------- */
+  --font-sans:  'Instrument Sans Variable', 'Helvetica Neue', Arial, sans-serif;
+  --font-serif: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-mono:  ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'Courier New', monospace;
+
+  /* Serif weights. Cormorant needed 300 everywhere because it was a single
+     light master; Fraunces is a sturdier face with a real weight axis, so
+     300 would read as anaemic at reading sizes. 400 is the text weight, and
+     the true display steps (--t-xxl and up) step back down to 300 where the
+     size carries the elegance instead of the thinness.
+
+     opsz handles contrast and spacing across sizes, but it does not touch
+     weight — which is why this still needs two values rather than one. */
+  --w-serif:   400;
+  --w-display: 300;
+
+  /* Fraunces' WONK axis: its swashy alternates. Off for anything being read,
+     on for anything being looked at. base.css sets the default. */
+  --wonk-text:    'WONK' 0;
+  --wonk-display: 'WONK' 1;
+
+  /* Fluid scale. Each step is clamp(min, preferred, max) against a
+     390px → 1600px viewport. Display steps are serif-first. */
+  --t-mega:   clamp(3.00rem, 1.22rem + 9.05vw,  9.50rem); /*  48 → 152  hero   */
+  --t-xxl:    clamp(2.35rem, 1.26rem + 5.55vw,  6.25rem); /*  38 → 100  chapter */
+  --t-xl:     clamp(2.00rem, 1.24rem + 3.86vw,  4.50rem); /*  32 →  72  pull    */
+  --t-lg:     clamp(1.55rem, 1.13rem + 2.13vw,  2.95rem); /*  25 →  47  heading */
+  --t-md:     clamp(1.20rem, 1.02rem + 0.91vw,  1.80rem); /*  19 →  29  lede    */
+  --t-body:   clamp(1.00rem, 0.95rem + 0.24vw,  1.15rem); /*  16 →  18  body    */
+  --t-sm:     0.875rem;                                    /*  14  caption      */
+  --t-xs:     0.75rem;                                     /*  12  meta         */
+  --t-xxs:    0.6875rem;                                   /*  11  kicker       */
+
+  --lh-tight:  1.00;
+  --lh-snug:   1.12;
+  --lh-head:   1.18;
+  --lh-body:   1.58;
+  --lh-loose:  1.72;
+
+  --ls-mega:  -0.016em;
+  --ls-tight: -0.009em;
+  --ls-norm:   0em;
+  --ls-wide:   0.08em;
+  --ls-kicker: 0.22em;   /* uppercase meta labels */
+  --ls-mega-k: 0.38em;   /* the widest, used sparingly */
+
+  /* --- space (8px base, fluid gutters) ------------------------------------ */
+  --s-1:  0.25rem;
+  --s-2:  0.5rem;
+  --s-3:  0.75rem;
+  --s-4:  1rem;
+  --s-5:  1.5rem;
+  --s-6:  2rem;
+  --s-7:  3rem;
+  --s-8:  4rem;
+  --s-9:  6rem;
+  --s-10: 8rem;
+  --s-11: 12rem;
+
+  --gutter:    clamp(1.25rem, 0.60rem + 2.8vw, 3.5rem);
+  --measure:   38rem;        /* ideal reading width  */
+  --measure-n: 30rem;        /* narrow column        */
+  --maxw:      92rem;        /* page frame           */
+
+  /* --- radii & elevation --------------------------------------------------- */
+  --r-sm:  6px;
+  --r-md:  12px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+  --r-pill: 999px;
+
+  --shadow-soft:  0 2px 10px -4px rgba(20,17,15,.14);
+  --shadow-card:  0 18px 44px -24px rgba(20,17,15,.38);
+  --shadow-lift:  0 34px 80px -34px rgba(20,17,15,.50);
+  --shadow-dark:  0 30px 90px -40px rgba(0,0,0,.85);
+
+  /* --- motion -------------------------------------------------------------- */
+  /* Durations are the *intent*; GSAP timelines read these via getComputedStyle
+     only where CSS and JS must agree. Most GSAP values are authored in JS. */
+  --d-fast:  180ms;
+  --d-base:  340ms;
+  --d-slow:  620ms;
+  --d-vslow: 1100ms;
+
+  /* CSS mirrors of the CustomEase curves registered in motion/core.js */
+  --e-out:    cubic-bezier(.22, .61, .21, 1);     /* general settle            */
+  --e-inout:  cubic-bezier(.65, .02, .18, 1);     /* paired in/out             */
+  --e-soft:   cubic-bezier(.33, .01, .20, 1);     /* long, filmic              */
+  --e-snap:   cubic-bezier(.16, .84, .28, 1);     /* micro-interactions        */
+
+  /* --- texture --------------------------------------------------------------
+     Fractal-noise grain, inherited from the original build but lightened and
+     tokenised so it is defined exactly once. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain-opacity: .045;
+
+  /* --- layering ------------------------------------------------------------ */
+  --z-base:     0;
+  --z-raised:   10;
+  --z-sticky:   20;
+  --z-rail:     40;
+  --z-nav:      50;
+  --z-overlay:  80;
+  --z-prologue: 100;
+  --z-cursor:   200;
+  --z-skip:     300;
+}
+
+/* ----------------------------------------------------------------------------
+   Dark chapters. Applied per-section with `data-tone="dark"`, which flips the
+   semantic surface tokens so components never hard-code a colour for a tone.
+   -------------------------------------------------------------------------- */
+[data-tone='dark'] {
+  --page:      var(--ink);
+  --page-text: var(--bone);
+  --rule:      var(--bone-18);
+  --focus:     var(--tungsten);
+  --ember-text: var(--tungsten);
+}
+
+/* ----------------------------------------------------------------------------
+   Motion gate.
+
+   `data-motion` is set on <html> by motion/core.js to "full" or "reduced",
+   resolving the OS `prefers-reduced-motion` setting against the user's own
+   saved toggle. CSS reads the attribute (not the media query) so the toggle
+   and the OS setting can never disagree.
+
+   --motion is 1 when animation is allowed and 0 when it is not; components
+   multiply transform distances by it so a single switch flattens everything.
+   -------------------------------------------------------------------------- */
+:root            { --motion: 1; }
+[data-motion='reduced'] { --motion: 0; }
+
+/* Pre-hydration default: honour the OS until core.js resolves the attribute,
+   so a reduced-motion user never sees one frame of movement. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='full']) { --motion: 0; }
+}

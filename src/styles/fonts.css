@@ -1,0 +1,70 @@
+/* ============================================================================
+   Langga — self-hosted type
+   ----------------------------------------------------------------------------
+   Two families, three files, 178 KB total, served from our own origin. This
+   replaces the render-blocking Google Fonts request chain (preconnect, CSS,
+   then fonts) with two preloaded files that start downloading in the first
+   round trip.
+
+   Fraunces is the romantic voice, roman and italic. It is a variable face and
+   we keep three of its four axes:
+
+     opsz  9-144   optical size. Browsers drive this from font-size via
+                   font-optical-sizing, so the same family is sturdy at 16px
+                   and high-contrast at 168px. This is the whole reason for
+                   choosing Fraunces: one file that is a text face and a
+                   display face depending on how big it is set.
+     wght  100-900 the full weight range, so --w-serif and --w-display are
+                   both real weights rather than synthesised ones.
+     WONK  0-1     Fraunces' swashy alternates (the single-storey g, the
+                   flared terminals). Charming at display sizes, noisy at
+                   reading sizes, so base.css turns it off by default and the
+                   display roles opt back in.
+
+   SOFT is pinned at 30 rather than left as an axis. It is the subtlest of the
+   four — a rounding of the terminals — and it alone cost 67 KB of the italic
+   file, more than opsz and WONK combined. 30 keeps the warmth without the
+   weight.
+
+   Instrument Sans carries the uppercase meta: kickers, labels, dates, the
+   chapter rail. Weight axis only; it is never set large enough to need opsz.
+
+   font-display: swap everywhere — text is readable immediately and reflows
+   once. ScrollTrigger re-measures on document.fonts.ready (motion/core.js),
+   so the swap never leaves a pinned chapter mis-measured.
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Fraunces Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/fraunces-latin-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+                 U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* The prologue's question is set in this face at --t-mega, so it is
+   first-paint critical and preloaded alongside the sans. */
+@font-face {
+  font-family: 'Fraunces Variable';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/fraunces-latin-italic.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+                 U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Instrument Sans Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400 700;
+  src: url('/fonts/instrument-sans-latin-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC,
+                 U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}

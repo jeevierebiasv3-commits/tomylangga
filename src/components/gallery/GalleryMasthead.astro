@@ -1,0 +1,131 @@
+---
+/**
+ * The way into the room.
+ */
+import { PLATES, OPENED } from '../../data/plates.js';
+const clips = PLATES.filter(p => p.kind === 'video').length;
+---
+<header class="gm">
+  <div class="frame gm__inner">
+    <p class="ch__eyebrow">
+      <span class="ch__numeral">&infin;</span>
+      <span>An exhibition in {PLATES.length} plates</span>
+    </p>
+
+    <h1 class="gm__title" data-room-title>Frames we kept</h1>
+
+    <p class="gm__lede">
+      Every photograph we ever took of each other, hung in one room. Some are
+      blurry. Some are badly lit. All of them are evidence that this happened,
+      and that I was paying attention the whole time.
+    </p>
+
+    <dl class="gm__facts">
+      <div><dt>Opened</dt><dd><time datetime="2022-05-14">{OPENED}</time></dd></div>
+      <div><dt>Photographs</dt><dd data-count={PLATES.length - clips}>{PLATES.length - clips}</dd></div>
+      <div><dt>Clips</dt><dd data-count={clips}>{clips}</dd></div>
+      <div><dt>Still hanging</dt><dd>Yes</dd></div>
+    </dl>
+
+    <p class="ch__cue" aria-hidden="true">scroll to enter</p>
+  </div>
+
+  <!-- Decorative: its pace and lean follow the scroll (motion/room.js). The
+       run is printed twice so a -50% loop is seamless. -->
+  <div class="gm__marquee" aria-hidden="true">
+    <div class="gm__track" data-marquee>
+      {[0, 1].map(() => (
+        <span class="gm__run">
+          <span>Frames we kept</span><i>&#10022;</i>
+          <span class="gm__ghost">{PLATES.length} plates</span><i>&#10022;</i>
+          <span>Still hanging</span><i>&#10022;</i>
+          <span class="gm__ghost">Since {OPENED}</span><i>&#10022;</i>
+        </span>
+      ))}
+    </div>
+  </div>
+</header>
+
+<style>
+  .gm {
+    background: var(--bone);
+    padding-block: var(--s-10) var(--s-6);
+    overflow: hidden;
+  }
+  .gm__inner { display: grid; gap: var(--s-5); }
+
+  .gm__title {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: var(--t-mega);
+    line-height: .95;
+    letter-spacing: -.035em;
+    max-width: 12ch;
+  }
+
+  .gm__lede {
+    max-width: 44ch;
+    font-size: var(--t-md);
+    line-height: 1.6;
+    color: var(--ink-64);
+  }
+
+  .gm__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-7);
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--rule);
+  }
+  .gm__facts div { display: grid; gap: 4px; }
+  .gm__facts dt {
+    font-size: var(--t-xxs);
+    letter-spacing: var(--ls-kicker);
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .gm__facts dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--t-md);
+    color: var(--ink);
+  }
+
+  /* Room for italic overhangs inside SplitText's line masks. */
+  .gm__title :global(.split-line-mask) { padding-inline: .1em; margin-inline: -.1em; padding-bottom: .06em; }
+  .gm__title :global(.split-char) { will-change: transform; }
+
+  /* --- marquee -------------------------------------------------------------- */
+  .gm__marquee {
+    margin-top: var(--s-8);
+    padding-block: var(--s-4);
+    border-block: 1px solid var(--rule);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .gm__track { display: inline-flex; will-change: transform; }
+  .gm__run {
+    display: inline-flex;
+    align-items: center;
+    gap: .45em;
+    padding-right: .45em;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: var(--w-display);
+    font-size: clamp(2.6rem, 1rem + 7vw, 8.5rem);
+    line-height: 1;
+    letter-spacing: -.03em;
+    color: var(--ink);
+  }
+  .gm__run i {
+    font-style: normal;
+    font-size: .32em;
+    color: var(--ember);
+  }
+  .gm__ghost {
+    color: transparent;
+    -webkit-text-stroke: 1px var(--ink);
+  }
+</style>
